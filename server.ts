@@ -32,6 +32,7 @@ import {
 
 const PORT = 3000;
 const DB_FILE = path.join(process.cwd(), 'data_storage.json');
+const SEED_FILE = path.join(process.cwd(), 'seed_state.json');
 
 // Initialize Server State
 let studioInfo = { ...INITIAL_STUDIO_INFO };
@@ -46,70 +47,83 @@ let transactions: TransactionRecord[] = [...INITIAL_TRANSACTIONS];
 let reviews: ClientReview[] = [...INITIAL_REVIEWS];
 let adminCredentials: AdminCredentials = { ...INITIAL_ADMIN_CREDENTIALS };
 
-// Load persisted data from disk if available
-function loadDb() {
+// Apply persisted data to in-memory state
+function applyPersistedData(data: any) {
+  if (data.studioInfo) studioInfo = data.studioInfo;
+  if (data.adminCredentials) {
+    adminCredentials = {
+      ...INITIAL_ADMIN_CREDENTIALS,
+      ...data.adminCredentials,
+    };
+  }
+  if (Array.isArray(data.rooms) && data.rooms.length > 0) rooms = data.rooms;
+  if (Array.isArray(data.services) && data.services.length > 0) {
+    // Merge initial services with saved services to make sure defaults exist plus any created ones
+    const existingMap = new Map<string, StudioService>();
+    INITIAL_SERVICES.forEach((s) => existingMap.set(s.id, s));
+    data.services.forEach((s: StudioService) => existingMap.set(s.id, s));
+    services = Array.from(existingMap.values());
+  }
+  clients = Array.isArray(data.clients) ? data.clients : [];
+  bookings = Array.isArray(data.bookings) ? data.bookings : [];
+  quotes = Array.isArray(data.quotes) ? data.quotes : [];
+  chatMessages = Array.isArray(data.chatMessages) ? data.chatMessages : [];
+  if (Array.isArray(data.notifications) && data.notifications.length > 0) {
+    notifications = data.notifications;
+  } else {
+    notifications = [...INITIAL_NOTIFICATIONS];
+  }
+  transactions = Array.isArray(data.transactions) ? data.transactions : [];
+  reviews = Array.isArray(data.reviews) ? data.reviews : [];
+
+  // Backfill any missing transaction for confirmed bookings
+  const existingTxBookingIds = new Set(transactions.map((t) => t.bookingId).filter(Boolean));
+  bookings.forEach((b) => {
+    if ((b.status === 'pago_confirmado' || b.status === 'concluido' || b.status === 'agendado') && !existingTxBookingIds.has(b.id)) {
+      const amount = Number(b.finalAmount) || Number(b.totalAmount) || 0;
+      if (amount > 0) {
+        const backfilledTx: TransactionRecord = {
+          id: `tx-backfilled-${b.id}`,
+          bookingId: b.id,
+          clientId: b.clientId,
+          clientName: b.bandOrArtistName || b.clientName,
+          serviceName: b.serviceName,
+          amount,
+          paymentMethod: 'PIX',
+          confirmedAt: b.updatedAt || b.createdAt || new Date().toISOString(),
+          month: (b.preferredDate || new Date().toISOString()).slice(0, 7),
+          status: 'confirmado',
+        };
+        transactions.push(backfilledTx);
+        existingTxBookingIds.add(b.id);
+      }
+    }
+  });
+}
+
+// Try to load state from a given file path
+function loadFileState(filePath: string): boolean {
   try {
-    if (fs.existsSync(DB_FILE)) {
-      const raw = fs.readFileSync(DB_FILE, 'utf-8');
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8');
       if (raw && raw.trim().length > 0) {
         const data = JSON.parse(raw);
-        if (data.studioInfo) studioInfo = data.studioInfo;
-        if (data.adminCredentials) {
-          adminCredentials = {
-            ...INITIAL_ADMIN_CREDENTIALS,
-            ...data.adminCredentials,
-          };
-        }
-        if (Array.isArray(data.rooms) && data.rooms.length > 0) rooms = data.rooms;
-        if (Array.isArray(data.services) && data.services.length > 0) {
-          // Merge initial services with saved services to make sure defaults exist plus any created ones
-          const existingMap = new Map<string, StudioService>();
-          INITIAL_SERVICES.forEach((s) => existingMap.set(s.id, s));
-          data.services.forEach((s: StudioService) => existingMap.set(s.id, s));
-          services = Array.from(existingMap.values());
-        }
-        clients = Array.isArray(data.clients) ? data.clients : [];
-        bookings = Array.isArray(data.bookings) ? data.bookings : [];
-        quotes = Array.isArray(data.quotes) ? data.quotes : [];
-        chatMessages = Array.isArray(data.chatMessages) ? data.chatMessages : [];
-        if (Array.isArray(data.notifications) && data.notifications.length > 0) {
-          notifications = data.notifications;
-        } else {
-          notifications = [...INITIAL_NOTIFICATIONS];
-        }
-        transactions = Array.isArray(data.transactions) ? data.transactions : [];
-        reviews = Array.isArray(data.reviews) ? data.reviews : [];
-
-        // Backfill any missing transaction for confirmed bookings
-        const existingTxBookingIds = new Set(transactions.map((t) => t.bookingId).filter(Boolean));
-        bookings.forEach((b) => {
-          if ((b.status === 'pago_confirmado' || b.status === 'concluido' || b.status === 'agendado') && !existingTxBookingIds.has(b.id)) {
-            const amount = Number(b.finalAmount) || Number(b.totalAmount) || 0;
-            if (amount > 0) {
-              const backfilledTx: TransactionRecord = {
-                id: `tx-backfilled-${b.id}`,
-                bookingId: b.id,
-                clientId: b.clientId,
-                clientName: b.bandOrArtistName || b.clientName,
-                serviceName: b.serviceName,
-                amount,
-                paymentMethod: 'PIX',
-                confirmedAt: b.updatedAt || b.createdAt || new Date().toISOString(),
-                month: (b.preferredDate || new Date().toISOString()).slice(0, 7),
-                status: 'confirmado',
-              };
-              transactions.push(backfilledTx);
-              existingTxBookingIds.add(b.id);
-            }
-          }
-        });
-
-        console.log(`[Storage] Base de dados carregada com sucesso! ${services.length} serviços, ${bookings.length} agendamentos e ${transactions.length} transações.`);
+        applyPersistedData(data);
+        console.log(
+          `[Storage] Base de dados carregada com sucesso de ${path.basename(filePath)}! ${services.length} serviços, ${bookings.length} agendamentos e ${transactions.length} transações.`
+        );
+        return true;
       }
     }
   } catch (err) {
-    console.error('[Storage] Erro ao carregar base persistente:', err);
+    console.error(`[Storage] Erro ao carregar base persistente de ${path.basename(filePath)}:`, err);
   }
+  return false;
+}
+
+// Load persisted data from disk if available, otherwise fall back to committed seed (admin data)
+function loadDb() {
+  loadFileState(DB_FILE) || loadFileState(SEED_FILE);
 }
 
 // Persist data to disk
