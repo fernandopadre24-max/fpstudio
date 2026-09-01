@@ -108,26 +108,18 @@ export const ClientView: React.FC<ClientViewProps> = ({
   onUpdateClientProfile,
 }) => {
   // New Booking State
-  const [selectedService, setSelectedService] = useState<StudioService | undefined>(services?.[0]);
-  const [selectedRoom, setSelectedRoom] = useState<StudioRoom | undefined>(rooms?.[0]);
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date(Date.now() + 86400000).toISOString().slice(0, 10)
-  );
-  const [selectedTime, setSelectedTime] = useState<string>('14:00');
+  const [selectedService, setSelectedService] = useState<StudioService | undefined>(undefined);
+  const [selectedRoom, setSelectedRoom] = useState<StudioRoom | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTime, setSelectedTime] = useState<string>('');
   const [bookingNotes, setBookingNotes] = useState<string>('');
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([
-    'pro_tools',
-    'microfone',
-    'placa_audio',
-    'monitores_tomato',
-    'voz_principal',
-    'guitarra_ibanez',
-  ]);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [instrumentCategoryFilter, setInstrumentCategoryFilter] = useState<string>('todos');
   const [instrumentSearch, setInstrumentSearch] = useState<string>('');
   const [tracksCount, setTracksCount] = useState<number>(1);
   const [paymentPlan, setPaymentPlan] = useState<'sinal_50' | 'integral_100'>('sinal_50');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState<boolean>(false);
+  const [bookingFormError, setBookingFormError] = useState<string>('');
 
   // Client Identification fields for the form
   const [bookingClientName, setBookingClientName] = useState<string>(activeClient?.name || '');
@@ -161,31 +153,12 @@ export const ClientView: React.FC<ClientViewProps> = ({
     );
   };
 
-  // Synchronize initial selections and live updates when services arrive
+  // Clear booking form error once all mandatory selections are made
   React.useEffect(() => {
-    if (services && services.length > 0) {
-      if (!selectedService) {
-        setSelectedService(services[0]);
-      } else {
-        const found = services.find((s) => s.id === selectedService.id);
-        if (
-          found &&
-          (found.imageUrl !== selectedService.imageUrl ||
-            found.basePrice !== selectedService.basePrice ||
-            found.name !== selectedService.name ||
-            found.description !== selectedService.description)
-        ) {
-          setSelectedService(found);
-        }
-      }
+    if (bookingFormError && selectedService && selectedDate && selectedTime) {
+      setBookingFormError('');
     }
-  }, [services, selectedService]);
-
-  React.useEffect(() => {
-    if (!selectedRoom && rooms && rooms.length > 0) {
-      setSelectedRoom(rooms[0]);
-    }
-  }, [rooms, selectedRoom]);
+  }, [selectedService, selectedDate, selectedTime, bookingFormError]);
 
   // Active Chat Booking Selection
   const [activeBookingIdForChat, setActiveBookingIdForChat] = useState<string>(
@@ -455,6 +428,20 @@ export const ClientView: React.FC<ClientViewProps> = ({
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedService) {
+      setBookingFormError('Por favor, selecione um serviço para continuar.');
+      return;
+    }
+    if (!selectedDate) {
+      setBookingFormError('Por favor, selecione a data do agendamento.');
+      return;
+    }
+    if (!selectedTime) {
+      setBookingFormError('Por favor, selecione o horário do agendamento.');
+      return;
+    }
+
     const srv = selectedService || services?.[0] || {
       id: 'srv-grava-producao',
       name: 'Gravação & Produção Musical',
@@ -1744,6 +1731,12 @@ export const ClientView: React.FC<ClientViewProps> = ({
                 </div>
 
                 {/* 9. Submit Button */}
+                {bookingFormError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-[11px] font-bold flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    <span>{bookingFormError}</span>
+                  </div>
+                )}
                 <button
                   type="submit"
                   disabled={isSubmittingBooking}
