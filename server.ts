@@ -29,9 +29,15 @@ import {
   ClientReview,
   AdminCredentials,
 } from './src/types';
+import {
+  initStorage,
+  loadState,
+  saveState,
+  StateSnapshot,
+} from './storage';
 
 const PORT = 3000;
-const DB_FILE = path.join(process.cwd(), 'data_storage.json');
+const LEGACY_DB_FILE = path.join(process.cwd(), 'data_storage.json');
 const SEED_FILE = path.join(process.cwd(), 'seed_state.json');
 
 // Initialize Server State
@@ -101,7 +107,7 @@ function applyPersistedData(data: any) {
   });
 }
 
-// Try to load state from a given file path
+// Try to load state from a given file path (legacy data_storage.json or committed seed)
 function loadFileState(filePath: string): boolean {
   try {
     if (fs.existsSync(filePath)) {
@@ -110,46 +116,70 @@ function loadFileState(filePath: string): boolean {
         const data = JSON.parse(raw);
         applyPersistedData(data);
         console.log(
-          `[Storage] Base de dados carregada com sucesso de ${path.basename(filePath)}! ${services.length} serviços, ${bookings.length} agendamentos e ${transactions.length} transações.`
+          `[Storage] Dados carregados com sucesso de ${path.basename(filePath)}! ${services.length} serviços, ${bookings.length} agendamentos e ${transactions.length} transações.`
         );
         return true;
       }
     }
   } catch (err) {
-    console.error(`[Storage] Erro ao carregar base persistente de ${path.basename(filePath)}:`, err);
+    console.error(`[Storage] Erro ao carregar dados de ${path.basename(filePath)}:`, err);
   }
   return false;
 }
 
-// Load persisted data from disk if available, otherwise fall back to committed seed (admin data)
-function loadDb() {
-  loadFileState(DB_FILE) || loadFileState(SEED_FILE);
+// Build current in-memory state snapshot
+function buildSnapshot(): StateSnapshot {
+  return {
+    studioInfo,
+    adminCredentials,
+    rooms,
+    services,
+    clients,
+    bookings,
+    quotes,
+    chatMessages,
+    notifications,
+    transactions,
+    reviews,
+  };
 }
 
-// Persist data to disk
-function saveDb() {
+// Load persisted data from SQLite; fall back to legacy file or committed seed (admin data)
+async function loadDb() {
+  let loadedFromDb = false;
   try {
-    const data = {
-      studioInfo,
-      adminCredentials,
-      rooms,
-      services,
-      clients,
-      bookings,
-      quotes,
-      chatMessages,
-      notifications,
-      transactions,
-      reviews,
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    await initStorage();
+    const saved = await loadState();
+    if (Object.keys(saved).length > 0) {
+      applyPersistedData(saved);
+      console.log(
+        `[Storage] Dados carregados do SQLite! ${services.length} serviços, ${bookings.length} agendamentos e ${transactions.length} transações.`
+      );
+      loadedFromDb = true;
+    }
   } catch (err) {
-    console.error('[Storage] Erro ao salvar dados no arquivo:', err);
+    console.error('[Storage] Erro ao carregar dados do SQLite:', err);
+  }
+
+  if (!loadedFromDb) {
+    const fromLegacy = fs.existsSync(LEGACY_DB_FILE) && loadFileState(LEGACY_DB_FILE);
+    const fromSeed = !fromLegacy && loadFileState(SEED_FILE);
+    if (fromLegacy || fromSeed) {
+      try {
+        await saveState(buildSnapshot());
+      } catch (err) {
+        console.error('[Storage] Erro ao persistir dados iniciais no SQLite:', err);
+      }
+    }
   }
 }
 
-// Initial DB load on script execution
-loadDb();
+// Persist data to SQLite (fire-and-forget)
+function saveDb() {
+  saveState(buildSnapshot()).catch((err) => {
+    console.error('[Storage] Erro ao salvar dados no SQLite:', err);
+  });
+}
 
 // SSE Clients List for Realtime Broadcasting
 type SSEClient = { id: string; res: Response };
@@ -302,6 +332,8 @@ function computeFinancials(): FinancialSummary {
 }
 
 async function startApp() {
+  await loadDb();
+
   const app = express();
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
