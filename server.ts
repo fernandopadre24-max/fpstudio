@@ -39,7 +39,7 @@ import {
   StateSnapshot,
 } from './storage';
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const LEGACY_DB_FILE = path.join(process.cwd(), 'data_storage.json');
 const SEED_FILE = path.join(process.cwd(), 'seed_state.json');
 
