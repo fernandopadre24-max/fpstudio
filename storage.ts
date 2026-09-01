@@ -1,17 +1,10 @@
-import path from 'path';
-import { createClient } from '@libsql/client';
+import { Pool } from 'pg';
 
-// DATABASE_URL (por padrão usa um arquivo SQLite local no diretório do projeto)
-// - Local (deploy único):   file:./fpstudio.db         (ou DATABASE_URL vazio)
-// - Compartilhado (multi-máquina): libsql://<db>.turso.io + DATABASE_AUTH_TOKEN
-const DEFAULT_DB_PATH = path.join(process.cwd(), 'fpstudio.db');
-const dbUrl = process.env.DATABASE_URL || `file:${DEFAULT_DB_PATH}`;
-
-export const db = createClient({
-  url: dbUrl,
-  ...(process.env.DATABASE_AUTH_TOKEN
-    ? { authToken: process.env.DATABASE_AUTH_TOKEN }
-    : {}),
+// SUPABASE_DATABASE_URL: PostgreSQL connection string from Supabase (Settings → Database → URI)
+// Format: postgresql://postgres.xxxxx:password@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+const pool = new Pool({
+  connectionString: process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
 export const STATE_KEYS = [
@@ -31,22 +24,29 @@ export const STATE_KEYS = [
 export type StateSnapshot = Partial<Record<(typeof STATE_KEYS)[number], unknown>>;
 
 export async function initStorage() {
-  await db.execute(
-    'CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)'
-  );
-  await db.execute(
-    'CREATE TABLE IF NOT EXISTS uploaded_files (id TEXT PRIMARY KEY, mime TEXT NOT NULL, data TEXT NOT NULL)'
-  );
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS uploaded_files (
+      id TEXT PRIMARY KEY,
+      mime TEXT NOT NULL,
+      data TEXT NOT NULL
+    )
+  `);
 }
 
 export async function loadState(): Promise<StateSnapshot> {
-  const rs = await db.execute('SELECT key, value FROM app_state');
+  const rs = await pool.query('SELECT key, value FROM app_state');
   const out: StateSnapshot = {};
   for (const row of rs.rows) {
-    const key = String(row.key) as (typeof STATE_KEYS)[number];
+    const key = row.key as (typeof STATE_KEYS)[number];
     if (!STATE_KEYS.includes(key)) continue;
     try {
-      out[key] = JSON.parse(String(row.value));
+      out[key] = JSON.parse(row.value);
     } catch {
       // ignore invalid row
     }
@@ -57,31 +57,36 @@ export async function loadState(): Promise<StateSnapshot> {
 export async function saveState(state: StateSnapshot) {
   const entries = Object.entries(state).filter(([, v]) => v !== undefined);
   if (entries.length === 0) return;
-  const values: string[] = [];
-  for (const [k, v] of entries) values.push(k, JSON.stringify(v));
-  const placeholders = entries.map(() => '(?, ?)').join(', ');
-  await db.execute(
+
+  const keys = entries.map(([k]) => k);
+  const vals = entries.map(([, v]) => JSON.stringify(v));
+  const placeholders = keys.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(', ');
+  const params: string[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    params.push(keys[i], vals[i]);
+  }
+
+  await pool.query(
     `INSERT INTO app_state (key, value) VALUES ${placeholders}
-     ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
-    values
+     ON CONFLICT(key) DO UPDATE SET value = EXCLUDED.value`,
+    params
   );
 }
 
 export async function wipeState() {
-  await db.execute('DELETE FROM app_state');
+  await pool.query('DELETE FROM app_state');
 }
 
 export async function saveUploadedFile(id: string, mime: string, base64: string) {
-  await db.execute(
-    `INSERT INTO uploaded_files (id, mime, data) VALUES (?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET mime = excluded.mime, data = excluded.data`,
+  await pool.query(
+    `INSERT INTO uploaded_files (id, mime, data) VALUES ($1, $2, $3)
+     ON CONFLICT(id) DO UPDATE SET mime = EXCLUDED.mime, data = EXCLUDED.data`,
     [id, mime, base64]
   );
 }
 
 export async function getUploadedFile(id: string): Promise<{ mime: string; base64: string } | null> {
-  const rs = await db.execute('SELECT mime, data FROM uploaded_files WHERE id = ?', [id]);
+  const rs = await pool.query('SELECT mime, data FROM uploaded_files WHERE id = $1', [id]);
   if (rs.rows.length === 0) return null;
-  const row = rs.rows[0];
-  return { mime: String(row.mime), base64: String(row.data) };
+  return { mime: rs.rows[0].mime, base64: rs.rows[0].data };
 }
