@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: fpstudio
+    runtime: node
+    plan: free
+    autoDeploy: true
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_DATABASE_URL
+        sync: false
