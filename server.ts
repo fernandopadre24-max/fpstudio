@@ -462,7 +462,7 @@ async function startApp() {
         phone: adminCredentials.phone,
         pin: adminCredentials.pin,
         password: adminCredentials.password,
-        backupPins: adminCredentials.backupPins || ['0000', '1234', '123456'],
+        backupPins: adminCredentials.backupPins || [],
         updatedAt: adminCredentials.updatedAt,
       },
     });

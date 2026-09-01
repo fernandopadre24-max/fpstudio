@@ -1511,7 +1511,7 @@ function AppContent() {
   };
 
   const handleUpdateAdminCredentials = async (
-    data: Partial<AdminCredentials> & { currentPassword?: string; currentPin?: string }
+    data: Partial<AdminCredentials> & { currentPassword?: string; currentPin?: string; newPassword?: string; newPin?: string }
   ): Promise<{ success: boolean; error?: string; message?: string }> => {
     try {
       const res = await fetch('/api/admin/credentials', {
@@ -1534,13 +1534,14 @@ function AppContent() {
       console.error('Error updating admin credentials:', err);
       // Fallback local update if offline/network error
       setAdminCredentials((prev) => {
+        const newPin = (data.newPin || data.pin || '').toString().trim();
         const next: AdminCredentials = {
           name: data.name || prev.name,
           email: data.email || prev.email,
           phone: data.phone || prev.phone,
-          password: data.password || prev.password,
-          pin: data.pin || prev.pin,
-          backupPins: data.backupPins || prev.backupPins,
+          password: data.newPassword || data.password || prev.password,
+          pin: newPin || prev.pin,
+          backupPins: newPin ? [newPin] : data.backupPins || prev.backupPins,
         };
         try {
           safeStorage.setItem('fpstudio_admin_credentials', JSON.stringify(next));

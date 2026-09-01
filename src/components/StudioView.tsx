@@ -2132,7 +2132,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 phone: '(71) 9 8118-4589',
                 password: '123456',
                 pin: '0000',
-                backupPins: ['0000', '1234', '123456'],
+                backupPins: [],
               }
             }
             onUpdateAdminCredentials={
