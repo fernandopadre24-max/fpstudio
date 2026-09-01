@@ -540,40 +540,290 @@ function AppContent() {
   useEffect(() => {
     loadState();
 
-    const POLL_INTERVAL = 5000;
-    let prevNotifCount = 0;
+    // Establish Realtime Server-Sent Events (SSE) Connection safely
+    let eventSource: EventSource | null = null;
+    try {
+      if (typeof window !== 'undefined' && 'EventSource' in window) {
+        eventSource = new EventSource('/api/events');
 
-    const poll = async () => {
-      try {
-        const res = await fetch('/api/state');
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data) return;
+        eventSource.onopen = () => {
+          setIsConnected(true);
+        };
 
-        setStudioInfo(data.studioInfo || {});
-        setRooms(data.rooms || []);
-        setServices(data.services || []);
-        setClients(data.clients || []);
-        setBookings(data.bookings || []);
-        setQuotes(data.quotes || []);
-        setChatMessages(data.chatMessages || []);
-        setTransactions(data.transactions || []);
-        setFinancials(data.financials || {});
-        setReviews(data.reviews || []);
+        eventSource.onerror = () => {
+          setIsConnected(false);
+        };
 
-        const newNotifs = data.notifications || [];
-        if (prevNotifCount > 0 && newNotifs.length > prevNotifCount) {
-          playNotificationChime();
-        }
-        prevNotifCount = newNotifs.length;
-        setNotifications(newNotifs);
-      } catch (err) {
-        console.warn('Polling error:', err);
+        eventSource.addEventListener('notification', (e: MessageEvent) => {
+          try {
+            const notif: PushNotification = JSON.parse(e.data);
+            setNotifications((prev) => [notif, ...prev.filter((n) => n.id !== notif.id)]);
+            playNotificationChime();
+          } catch (err) {
+            console.error('Error parsing SSE notification:', err);
+          }
+        });
+
+        eventSource.addEventListener('notifications_read', (e: MessageEvent) => {
+          try {
+            const { notifId } = JSON.parse(e.data);
+            if (notifId) {
+              setNotifications((prev) => prev.map((n) => (n.id === notifId ? { ...n, read: true } : n)));
+            } else {
+              setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+            }
+          } catch (err) {
+            console.error('Error parsing SSE notifications_read:', err);
+          }
+        });
+
+        eventSource.addEventListener('notification_deleted', (e: MessageEvent) => {
+          try {
+            const { id } = JSON.parse(e.data);
+            if (id) {
+              setNotifications((prev) => prev.filter((n) => n.id !== id));
+            }
+          } catch (err) {
+            console.error('Error parsing SSE notification_deleted:', err);
+          }
+        });
+
+        eventSource.addEventListener('notifications_cleared', (e: MessageEvent) => {
+          try {
+            const { role } = JSON.parse(e.data);
+            if (role) {
+              setNotifications((prev) => prev.filter((n) => n.targetRole !== role && n.targetRole !== 'all'));
+            } else {
+              setNotifications([]);
+            }
+          } catch (err) {
+            console.error('Error parsing SSE notifications_cleared:', err);
+          }
+        });
+
+        eventSource.addEventListener('new_booking', (e: MessageEvent) => {
+          try {
+            const newBooking: BookingRequest = JSON.parse(e.data);
+            setBookings((prev) => [newBooking, ...prev.filter((b) => b.id !== newBooking.id)]);
+          } catch (err) {
+            console.error('Error parsing SSE new_booking:', err);
+          }
+        });
+
+        eventSource.addEventListener('quote_created', (e: MessageEvent) => {
+          try {
+            const { booking, quote, chatMsg } = JSON.parse(e.data);
+            setBookings((prev) => prev.map((b) => (b.id === booking.id ? booking : b)));
+            setQuotes((prev) => [...prev.filter((q) => q.id !== quote.id), quote]);
+            if (chatMsg) setChatMessages((prev) => [...prev.filter((m) => m.id !== chatMsg.id), chatMsg]);
+          } catch (err) {
+            console.error('Error parsing SSE quote_created:', err);
+          }
+        });
+
+        eventSource.addEventListener('chat_message', (e: MessageEvent) => {
+          try {
+            const rawData = JSON.parse(e.data);
+            let msgObj: ChatMessage | null = null;
+            let bookingObj: BookingRequest | null = null;
+
+            if (rawData && typeof rawData === 'object') {
+              if (rawData.message && typeof rawData.message === 'object' && rawData.message.id) {
+                msgObj = rawData.message;
+                bookingObj = rawData.booking || null;
+              } else if (rawData.chatMsg && typeof rawData.chatMsg === 'object' && rawData.chatMsg.id) {
+                msgObj = rawData.chatMsg;
+                bookingObj = rawData.booking || null;
+              } else if (rawData.id && rawData.bookingId) {
+                msgObj = rawData as ChatMessage;
+              }
+            }
+
+            if (msgObj && msgObj.id) {
+              setChatMessages((prev) => [...prev.filter((m) => m.id !== msgObj!.id), msgObj!]);
+            }
+            if (bookingObj && bookingObj.id) {
+              setBookings((prev) => prev.map((b) => (b.id === bookingObj!.id ? bookingObj! : b)));
+            }
+          } catch (err) {
+            console.error('Error parsing SSE chat_message:', err);
+          }
+        });
+
+        eventSource.addEventListener('payment_confirmed', (e: MessageEvent) => {
+          try {
+            const { booking, transaction, confirmMsg, financials: updatedFinancials } = JSON.parse(e.data);
+            setBookings((prev) => prev.map((b) => (b.id === booking.id ? booking : b)));
+            if (transaction) setTransactions((prev) => [transaction, ...prev.filter((t) => t.id !== transaction.id)]);
+            if (confirmMsg) setChatMessages((prev) => [...prev.filter((m) => m.id !== confirmMsg.id), confirmMsg]);
+            if (updatedFinancials) setFinancials(updatedFinancials);
+          } catch (err) {
+            console.error('Error parsing SSE payment_confirmed:', err);
+          }
+        });
+
+        eventSource.addEventListener('new_client', (e: MessageEvent) => {
+          try {
+            const newClient: UserProfile = JSON.parse(e.data);
+            setClients((prev) => {
+              const next = [newClient, ...prev.filter((c) => c.id !== newClient.id)];
+              try {
+                safeStorage.setItem('fpstudio_clients_data', JSON.stringify(next));
+              } catch (err) {}
+              return next;
+            });
+          } catch (err) {
+            console.error('Error parsing SSE new_client:', err);
+          }
+        });
+
+        eventSource.addEventListener('client_updated', (e: MessageEvent) => {
+          try {
+            const updatedClient: UserProfile = JSON.parse(e.data);
+            setClients((prev) => {
+              const next = prev.map((c) => (c.id === updatedClient.id ? updatedClient : c));
+              try {
+                safeStorage.setItem('fpstudio_clients_data', JSON.stringify(next));
+              } catch (err) {}
+              return next;
+            });
+            setActiveClient((prev) => (prev && prev.id === updatedClient.id ? { ...prev, ...updatedClient } : prev));
+          } catch (err) {
+            console.error('Error parsing SSE client_updated:', err);
+          }
+        });
+
+        eventSource.addEventListener('client_deleted', (e: MessageEvent) => {
+          try {
+            const { id } = JSON.parse(e.data);
+            setClients((prev) => {
+              const next = prev.filter((c) => c.id !== id);
+              try {
+                safeStorage.setItem('fpstudio_clients_data', JSON.stringify(next));
+              } catch (err) {}
+              return next;
+            });
+          } catch (err) {
+            console.error('Error parsing SSE client_deleted:', err);
+          }
+        });
+
+        eventSource.addEventListener('clients_cleared', () => {
+          try {
+            setClients([]);
+            setActiveClient(null);
+            safeStorage.removeItem('fpstudio_clients_data');
+            safeStorage.removeItem('fpstudio_active_client_id');
+            safeStorage.removeItem('fpstudio_client_logged_in');
+          } catch (err) {
+            console.error('Error handling SSE clients_cleared:', err);
+          }
+        });
+
+        eventSource.addEventListener('service_created', (e: MessageEvent) => {
+          try {
+            const newService: StudioService = JSON.parse(e.data);
+            setServices((prev) => [...prev.filter((s) => s.id !== newService.id), newService]);
+          } catch (err) {
+            console.error('Error parsing SSE service_created:', err);
+          }
+        });
+
+        eventSource.addEventListener('service_updated', (e: MessageEvent) => {
+          try {
+            const updatedService: StudioService = JSON.parse(e.data);
+            setServices((prev) => prev.map((s) => (s.id === updatedService.id ? updatedService : s)));
+          } catch (err) {
+            console.error('Error parsing SSE service_updated:', err);
+          }
+        });
+
+        eventSource.addEventListener('service_deleted', (e: MessageEvent) => {
+          try {
+            const { id } = JSON.parse(e.data);
+            setServices((prev) => prev.filter((s) => s.id !== id));
+          } catch (err) {
+            console.error('Error parsing SSE service_deleted:', err);
+          }
+        });
+
+        eventSource.addEventListener('booking_updated', (e: MessageEvent) => {
+          try {
+            const { booking, transaction, financials: updatedFinancials } = JSON.parse(e.data);
+            if (booking) {
+              setBookings((prev) => prev.map((b) => (b.id === booking.id ? booking : b)));
+            }
+            if (transaction) {
+              setTransactions((prev) => [transaction, ...prev.filter((t) => t.id !== transaction.id)]);
+            }
+            if (updatedFinancials) {
+              setFinancials(updatedFinancials);
+            }
+          } catch (err) {
+            console.error('Error parsing SSE booking_updated:', err);
+          }
+        });
+
+        eventSource.addEventListener('bookings_bulk_updated', (e: MessageEvent) => {
+          try {
+            const { bookings: updatedBookings, financials: updatedFinancials } = JSON.parse(e.data);
+            if (updatedBookings) setBookings(updatedBookings);
+            if (updatedFinancials) setFinancials(updatedFinancials);
+          } catch (err) {
+            console.error('Error parsing SSE bookings_bulk_updated:', err);
+          }
+        });
+
+        eventSource.addEventListener('booking_deleted', (e: MessageEvent) => {
+          try {
+            const { id, financials: updatedFinancials } = JSON.parse(e.data);
+            setBookings((prev) => prev.filter((b) => b.id !== id));
+            if (updatedFinancials) setFinancials(updatedFinancials);
+          } catch (err) {
+            console.error('Error parsing SSE booking_deleted:', err);
+          }
+        });
+
+        eventSource.addEventListener('new_review', (e: MessageEvent) => {
+          try {
+            const newRev: ClientReview = JSON.parse(e.data);
+            setReviews((prev) => [newRev, ...prev.filter((r) => r.id !== newRev.id)]);
+          } catch (err) {
+            console.error('Error parsing SSE new_review:', err);
+          }
+        });
+
+        eventSource.addEventListener('review_updated', (e: MessageEvent) => {
+          try {
+            const updatedRev: ClientReview = JSON.parse(e.data);
+            setReviews((prev) => prev.map((r) => (r.id === updatedRev.id ? updatedRev : r)));
+          } catch (err) {
+            console.error('Error parsing SSE review_updated:', err);
+          }
+        });
+
+        eventSource.addEventListener('review_deleted', (e: MessageEvent) => {
+          try {
+            const { id } = JSON.parse(e.data);
+            setReviews((prev) => prev.filter((r) => r.id !== id));
+          } catch (err) {
+            console.error('Error parsing SSE review_deleted:', err);
+          }
+        });
+
+        eventSource.addEventListener('state_reset', () => {
+          loadState();
+        });
+      }
+    } catch (sseErr) {
+      console.warn('SSE connection unavailable:', sseErr);
+    }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
       }
     };
-
-    const interval = setInterval(poll, POLL_INTERVAL);
-    return () => clearInterval(interval);
   }, []);
 
   // Action Handlers

@@ -43,8 +43,6 @@ const PORT = Number(process.env.PORT) || 3000;
 const LEGACY_DB_FILE = path.join(process.cwd(), 'data_storage.json');
 const SEED_FILE = path.join(process.cwd(), 'seed_state.json');
 
-const app = express();
-
 // Initialize Server State
 let studioInfo = { ...INITIAL_STUDIO_INFO };
 let rooms = [...INITIAL_ROOMS];
@@ -339,6 +337,7 @@ function computeFinancials(): FinancialSummary {
 async function startApp() {
   await loadDb();
 
+  const app = express();
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -1822,24 +1821,6 @@ async function startApp() {
   });
 }
 
-export default app;
-export { ensureStarted };
-
-let _started = false;
-
-async function ensureStarted() {
-  if (_started) return;
-  _started = true;
-  await startApp();
-}
-
-const isMain = process.argv[1] && (
-  process.argv[1].endsWith('server.ts') ||
-  process.argv[1].endsWith('server.cjs') ||
-  process.argv[1].endsWith('server.js')
-);
-if (isMain || process.env.VERCEL) {
-  ensureStarted().catch((err) => {
-    console.error('Failed to start server:', err);
-  });
-}
+startApp().catch((err) => {
+  console.error('Failed to start server:', err);
+});
