@@ -33,6 +33,8 @@ import {
   initStorage,
   loadState,
   saveState,
+  saveUploadedFile,
+  getUploadedFile,
   StateSnapshot,
 } from './storage';
 
@@ -345,6 +347,22 @@ async function startApp() {
       fs.mkdirSync(uploadsDir, { recursive: true });
     } catch (e) {}
   }
+  // Serve uploaded images from the SQLite database first (shared across machines),
+  // falling back to the local uploads directory for legacy files
+  app.get('/uploads/:file', async (req, res, next) => {
+    try {
+      const img = await getUploadedFile(req.params.file);
+      if (img) {
+        res.setHeader('Content-Type', img.mime || 'image/jpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        return res.send(Buffer.from(img.base64, 'base64'));
+      }
+    } catch (err) {
+      // fall through to static handler
+    }
+    next();
+  });
+
   app.use('/uploads', express.static(uploadsDir));
 
   // API ROUTE: Upload image (converts Base64 to persistent file URL)
@@ -376,10 +394,15 @@ async function startApp() {
       const safeName = `${safePrefix}${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
       const filePath = path.join(uploadsDir, safeName);
 
+      // Store in SQLite so the image is available on every machine (shared DB)
+      saveUploadedFile(safeName, mimeType, base64Data).catch((err) => {
+        console.error('[Upload] Erro ao salvar imagem no banco:', err);
+      });
+      // Also write to local disk for backward compatibility / fallback
       fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
       const url = `/uploads/${safeName}`;
 
-      console.log(`[Upload] Foto salva com sucesso: ${url}`);
+      console.log(`[Upload] Foto salva com sucesso na base de dados: ${url}`);
       return res.json({ success: true, url });
     } catch (err) {
       console.error('[Upload] Erro ao processar upload:', err);

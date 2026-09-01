@@ -34,6 +34,9 @@ export async function initStorage() {
   await db.execute(
     'CREATE TABLE IF NOT EXISTS app_state (key TEXT PRIMARY KEY, value TEXT NOT NULL)'
   );
+  await db.execute(
+    'CREATE TABLE IF NOT EXISTS uploaded_files (id TEXT PRIMARY KEY, mime TEXT NOT NULL, data TEXT NOT NULL)'
+  );
 }
 
 export async function loadState(): Promise<StateSnapshot> {
@@ -66,4 +69,19 @@ export async function saveState(state: StateSnapshot) {
 
 export async function wipeState() {
   await db.execute('DELETE FROM app_state');
+}
+
+export async function saveUploadedFile(id: string, mime: string, base64: string) {
+  await db.execute(
+    `INSERT INTO uploaded_files (id, mime, data) VALUES (?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET mime = excluded.mime, data = excluded.data`,
+    [id, mime, base64]
+  );
+}
+
+export async function getUploadedFile(id: string): Promise<{ mime: string; base64: string } | null> {
+  const rs = await db.execute('SELECT mime, data FROM uploaded_files WHERE id = ?', [id]);
+  if (rs.rows.length === 0) return null;
+  const row = rs.rows[0];
+  return { mime: String(row.mime), base64: String(row.data) };
 }
