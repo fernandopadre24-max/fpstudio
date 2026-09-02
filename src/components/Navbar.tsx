@@ -35,7 +35,6 @@ import {
 import { Role, UserProfile, PushNotification } from '../types';
 import fpStudioLogo from '../assets/images/fpstudio_logo_1786495953533.jpg';
 import { useCustomization } from '../context/CustomizationContext';
-import { FlagIcon } from './FlagIcon';
 import { playNotificationChime } from '../utils/audioUtils';
 
 interface NavbarProps {
@@ -87,7 +86,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     colorMode,
     toggleColorMode,
     language,
-    setLanguage,
     currentAccent,
     currentTheme,
     currentFont,
@@ -226,10 +224,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const toggleLanguageQuick = () => {
-    setLanguage(language === 'pt' ? 'en' : 'pt');
-  };
-
   const isStudioMode = currentRole === 'studio';
 
   return (
@@ -354,15 +348,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <Sun className="w-4 h-4 text-amber-400 transition group-hover:scale-110" />
               )}
-            </button>
-
-            {/* Quick Language Toggle Button (Icon Only with Flag) */}
-            <button
-              onClick={toggleLanguageQuick}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-600 transition flex items-center justify-center cursor-pointer shadow-sm group hover:scale-105"
-              title={language === 'pt' ? 'Mudar para Inglês (Switch to English)' : 'Switch to Portuguese (Mudar para Português)'}
-            >
-              <FlagIcon language={language} size="md" className="rounded-full w-5 h-5 object-cover" />
             </button>
 
             {/* Customization & Design Palette Button (Icon Only) */}

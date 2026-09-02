@@ -27,7 +27,6 @@ import {
   FontSize,
 } from '../context/CustomizationContext';
 import { Language } from '../data/translations';
-import { FlagIcon } from './FlagIcon';
 
 export const CustomizationModal: React.FC = () => {
   const {
@@ -42,7 +41,6 @@ export const CustomizationModal: React.FC = () => {
     currentFont,
     currentSize,
     setColorMode,
-    setLanguage,
     setAccentColor,
     setThemeStyle,
     setFontFamily,
@@ -53,8 +51,8 @@ export const CustomizationModal: React.FC = () => {
     setIsCustomModalOpen,
   } = useCustomization();
 
-  type TabKey = 'language' | 'accent' | 'theme' | 'font' | 'size';
-  const [activeTab, setActiveTab] = useState<TabKey>('language');
+  type TabKey = 'accent' | 'theme' | 'font' | 'size';
+  const [activeTab, setActiveTab] = useState<TabKey>('accent');
 
   if (!isCustomModalOpen) return null;
 
@@ -93,23 +91,8 @@ export const CustomizationModal: React.FC = () => {
 
         {/* Tab Strip */}
         <div className="flex items-center gap-1.5 p-1 bg-zinc-900/90 rounded-2xl border border-zinc-800 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setActiveTab('language')}
-            className={`flex-1 min-w-[100px] py-2 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
-              activeTab === 'language'
-                ? 'text-black shadow-lg'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60'
-            }`}
-            style={{
-              backgroundColor: activeTab === 'language' ? currentAccent.hex : 'transparent',
-            }}
-          >
-            <FlagIcon language={language} size="sm" className="rounded-sm" />
-            <span>{t('custom_tab_language')}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('accent')}
+           <button
+             onClick={() => setActiveTab('accent')}
             className={`flex-1 min-w-[100px] py-2 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
               activeTab === 'accent'
                 ? 'text-black shadow-lg'
@@ -169,90 +152,7 @@ export const CustomizationModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Tab 1: LANGUAGE */}
-        {activeTab === 'language' && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="space-y-1">
-              <h3 className="font-black text-sm text-white uppercase tracking-wide flex items-center gap-2">
-                <FlagIcon language={language} size="md" className="rounded-sm" />
-                {t('custom_language_title')}
-              </h3>
-              <p className="text-xs text-zinc-400">{t('custom_language_desc')}</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              {/* Portuguese (PT-BR) */}
-              <button
-                onClick={() => setLanguage('pt')}
-                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer group ${
-                  language === 'pt'
-                    ? 'bg-zinc-900 border-2 shadow-xl'
-                    : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700'
-                }`}
-                style={{
-                  borderColor: language === 'pt' ? currentAccent.hex : undefined,
-                }}
-              >
-                <div className="flex items-center gap-3.5">
-                  <FlagIcon language="pt" size="xl" className="rounded-md shadow-md" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="font-black text-sm text-white">Português (Brasil)</h4>
-                      <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
-                        PT-BR
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-400 mt-0.5">Padrão Nacional • FPStudio Salvador</p>
-                  </div>
-                </div>
-                {language === 'pt' && (
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-black font-black shrink-0 ml-2"
-                    style={{ backgroundColor: currentAccent.hex }}
-                  >
-                    <Check className="w-4 h-4" />
-                  </div>
-                )}
-              </button>
-
-              {/* English (EN-US) */}
-              <button
-                onClick={() => setLanguage('en')}
-                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer group ${
-                  language === 'en'
-                    ? 'bg-zinc-900 border-2 shadow-xl'
-                    : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700'
-                }`}
-                style={{
-                  borderColor: language === 'en' ? currentAccent.hex : undefined,
-                }}
-              >
-                <div className="flex items-center gap-3.5">
-                  <FlagIcon language="en" size="xl" className="rounded-md shadow-md" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="font-black text-sm text-white">English (US)</h4>
-                      <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-blue-950 text-blue-300 border border-blue-800">
-                        EN-US
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-400 mt-0.5">International Production Mode</p>
-                  </div>
-                </div>
-                {language === 'en' && (
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-black font-black shrink-0 ml-2"
-                    style={{ backgroundColor: currentAccent.hex }}
-                  >
-                    <Check className="w-4 h-4" />
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: ACCENT COLOR */}
+         {/* Tab 2: ACCENT COLOR */}
         {activeTab === 'accent' && (
           <div className="space-y-4 animate-in fade-in duration-150">
             <div className="space-y-1">
@@ -590,7 +490,7 @@ export const CustomizationModal: React.FC = () => {
               </span>
             </div>
             <span className="text-[10px] text-zinc-500 font-mono">
-              {currentFont.namePt} • {currentSize.scalePercent} • {language.toUpperCase()}
+              {currentFont.namePt} • {currentSize.scalePercent} • PT
             </span>
           </div>
 

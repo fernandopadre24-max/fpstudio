@@ -475,8 +475,9 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
     setColorMode(settings.colorMode === 'light' ? 'dark' : 'light');
   };
 
-  const setLanguage = (language: Language) => {
-    setSettings((prev) => ({ ...prev, language }));
+  const setLanguage = (_language: Language) => {
+    // App is fixed in Portuguese; language switching is disabled.
+    setSettings((prev) => ({ ...prev, language: 'pt' }));
   };
 
   const setAccentColor = (accentColor: AccentColor) => {
@@ -501,18 +502,17 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
     setSettings(DEFAULT_SETTINGS);
   };
 
-  // Translation helper function
+  // Translation helper function (always Portuguese)
   const t = (key: keyof Translations): string => {
-    const lang = settings?.language || 'pt';
-    const dict = (translations && translations[lang]) || translations?.pt || ({} as any);
-    return dict[key] || translations?.pt?.[key] || String(key);
+    const dict = translations?.pt || ({} as any);
+    return dict[key] || String(key);
   };
 
   return (
     <CustomizationContext.Provider
       value={{
         colorMode: settings?.colorMode || 'dark',
-        language: settings?.language || 'pt',
+        language: 'pt',
         accentColor: settings?.accentColor || 'neon_green',
         themeStyle: settings?.themeStyle || 'dark_studio',
         fontFamily: settings?.fontFamily || 'sans',

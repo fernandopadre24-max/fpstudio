@@ -128,6 +128,9 @@ export const ClientView: React.FC<ClientViewProps> = ({
   const [instrumentCategoryFilter, setInstrumentCategoryFilter] = useState<string>('todos');
   const [instrumentSearch, setInstrumentSearch] = useState<string>('');
   const [tracksCount, setTracksCount] = useState<number>(1);
+  // Reference MP3 tracks (guia da música) - max = tracksCount chosen in form
+  const [referenceTracks, setReferenceTracks] = useState<{ name: string; dataUrl: string }[]>([]);
+  const referenceTrackInputRef = React.useRef<HTMLInputElement>(null);
   const [paymentPlan, setPaymentPlan] = useState<'sinal_50' | 'integral_100'>('sinal_50');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState<boolean>(false);
   const [bookingFormError, setBookingFormError] = useState<string>('');
@@ -226,6 +229,64 @@ export const ClientView: React.FC<ClientViewProps> = ({
       });
     };
     reader.readAsDataURL(file);
+  };
+
+  // Select a reference MP3 track (guia da música) for the booking form
+  const handleReferenceTrackSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const remaining = Math.max(0, tracksCount - referenceTracks.length);
+    const toAdd = Array.from(files).slice(0, remaining);
+
+    if (toAdd.length === 0) {
+      alert(`Limite de ${tracksCount} ${tracksCount === 1 ? 'trilha' : 'trilhas'} de referência atingido.`);
+      e.target.value = '';
+      return;
+    }
+
+    const existingNames = new Set(referenceTracks.map((t) => t.name.toLowerCase()));
+    toAdd.forEach((file) => {
+      if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/i)) {
+        alert('Por favor, envie apenas arquivos de áudio válidos (MP3, WAV, M4A, OGG ou FLAC).');
+        return;
+      }
+      if (existingNames.has(file.name.toLowerCase())) {
+        alert(`O arquivo "${file.name}" já foi adicionado.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        setReferenceTracks((prev) => {
+          if (prev.length >= tracksCount) return prev;
+          return [...prev, { name: file.name, dataUrl }];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removeReferenceTrack = (index: number) => {
+    setReferenceTracks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Send all reference MP3 tracks as track_submission chat messages for the given booking
+  const sendReferenceTracks = (bookingId: string) => {
+    const clientName = activeClient?.bandOrArtistName || activeClient?.name || 'Cliente';
+    referenceTracks.forEach((track, i) => {
+      onSendChatMessage({
+        bookingId,
+        senderId: activeClient?.id || '',
+        senderRole: 'client',
+        senderName: clientName,
+        message: `🎵 Trilha de referência ${i + 1}: ${track.name}`,
+        type: 'track_submission',
+        attachment: { name: track.name, fileType: 'audio', dataUrl: track.dataUrl },
+      });
+    });
+    setReferenceTracks([]);
   };
 
   // Send a track submission message
@@ -450,9 +511,10 @@ export const ClientView: React.FC<ClientViewProps> = ({
                   booking: result.booking,
                   quote: result.quote,
                 });
-                if (result.booking.id) {
-                  setActiveBookingIdForChat(result.booking.id);
-                }
+                 if (result.booking.id) {
+                   setActiveBookingIdForChat(result.booking.id);
+                   sendReferenceTracks(result.booking.id);
+                 }
               }
             })
             .catch((err) => console.error('Error auto-submitting draft booking:', err))
@@ -604,9 +666,10 @@ export const ClientView: React.FC<ClientViewProps> = ({
           booking: result.booking,
           quote: result.quote,
         });
-        if (result.booking.id) {
-          setActiveBookingIdForChat(result.booking.id);
-        }
+         if (result.booking.id) {
+           setActiveBookingIdForChat(result.booking.id);
+           sendReferenceTracks(result.booking.id);
+         }
       } else {
         const cleanPixKey = studioInfo?.pixKey || '36790486534';
         const isSignal = paymentPlan === 'sinal_50';
@@ -1445,6 +1508,68 @@ export const ClientView: React.FC<ClientViewProps> = ({
                       ))}
                     </div>
                   </div>
+                </div>
+
+                {/* 4b. Reference MP3 Tracks (Guia da Música) - below track selector */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Trilhas de Referência (Guia da Música) - Opcional
+                    </label>
+                    <span className="text-[10px] text-fuchsia-500 font-semibold">
+                      Enviadas {referenceTracks.length}/{tracksCount}
+                    </span>
+                  </div>
+                  <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => referenceTrackInputRef.current?.click()}
+                        disabled={referenceTracks.length >= tracksCount}
+                        className={`px-3 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer border ${
+                          referenceTracks.length >= tracksCount
+                            ? 'bg-zinc-300 dark:bg-slate-700 text-zinc-500 dark:text-slate-400 border-zinc-200 dark:border-slate-600 cursor-not-allowed'
+                            : 'bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/40 hover:bg-fuchsia-500/25'
+                        }`}
+                        title="Enviar MP3 da música que deseja gravar/produzir (guia)"
+                      >
+                        <Mic2 className="w-4 h-4" /> {referenceTracks.length >= tracksCount ? 'Limite Atingido' : 'Adicionar Trilha MP3'}
+                      </button>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                        Envie até {tracksCount} {tracksCount === 1 ? 'trilha de referência' : 'trilhas de referência'} (MP3) da música que deseja gravar/produzir
+                      </span>
+                    </div>
+
+                    {referenceTracks.length > 0 && (
+                      <div className="mt-2 space-y-1.5">
+                        {referenceTracks.map((track, idx) => (
+                          <div key={idx} className="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 rounded-lg px-2.5 py-1.5 border border-fuchsia-500/30">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Music2 className="w-4 h-4 text-fuchsia-400 shrink-0" />
+                              <audio controls preload="none" src={track.dataUrl} className="h-8 max-w-[180px] sm:max-w-[260px]" />
+                              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate">{track.name}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeReferenceTrack(idx)}
+                              className="p-1 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition cursor-pointer"
+                              title="Remover trilha"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    ref={referenceTrackInputRef}
+                    onChange={handleReferenceTrackSelect}
+                    accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
+                    multiple
+                    className="hidden"
+                  />
                 </div>
 
                 {/* 5. Recording Options & Instruments Categorized Selection */}

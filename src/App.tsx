@@ -8,8 +8,7 @@ import { AdminSecurityModal } from './components/AdminSecurityModal';
 import { CustomizationModal } from './components/CustomizationModal';
 import { CustomizationProvider, useCustomization } from './context/CustomizationContext';
 import { Footer } from './components/Footer';
-import { FlagIcon } from './components/FlagIcon';
-import { Palette, Globe } from 'lucide-react';
+import { Palette } from 'lucide-react';
 import {
   Role,
   UserProfile,
@@ -36,7 +35,7 @@ import { safeStorage } from './utils/safeStorage';
 import { playNotificationChime } from './utils/audioUtils';
 
 function AppContent() {
-  const { currentAccent, currentTheme, currentFont, t, setIsCustomModalOpen, language, setLanguage } =
+  const { currentAccent, currentTheme, currentFont, t, setIsCustomModalOpen, language } =
     useCustomization();
   const getInitialRole = (): Role => {
     if (typeof window !== 'undefined') {
@@ -1880,16 +1879,8 @@ function AppContent() {
         )}
       </main>
 
-      {/* Floating Quick Customizer & Language Bar (Icon Only with Flag) */}
+      {/* Floating Quick Customizer Bar (Icon Only) */}
       <div className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 bg-zinc-950/90 backdrop-blur-md p-1.5 rounded-full border border-zinc-800 shadow-2xl">
-        <button
-          onClick={() => setLanguage(language === 'pt' ? 'en' : 'pt')}
-          className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 hover:text-white transition flex items-center justify-center cursor-pointer border border-zinc-700/80 shadow-sm group hover:scale-105"
-          title={language === 'pt' ? 'Mudar para Inglês (Switch to English)' : 'Switch to Portuguese (Mudar para Português)'}
-        >
-          <FlagIcon language={language} size="md" className="rounded-full w-5 h-5 object-cover" />
-        </button>
-
         <button
           onClick={() => setIsCustomModalOpen(true)}
           className="w-8 h-8 rounded-full text-black transition flex items-center justify-center cursor-pointer shadow-lg group"
