@@ -207,7 +207,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'financials', label: language === 'en' ? 'Finances' : 'Financeiro', icon: <DollarSign className="w-3.5 h-3.5" /> },
     { id: 'ai_assistant', label: language === 'en' ? 'AI Assistant' : 'Assistente IA', icon: <Bot className="w-3.5 h-3.5" /> },
     { id: 'chat_budget', label: language === 'en' ? 'Chat & Quotes' : 'Chat & Orçamentos', icon: <MessageSquare className="w-3.5 h-3.5" /> },
-    { id: 'admin_security', label: language === 'en' ? 'Edit Admin Data' : 'Alterar Dados ADM', sublabel: language === 'en' ? 'Password & PIN' : 'Senha & PIN', icon: <ShieldCheck className="w-3.5 h-3.5 text-sky-400" /> },
+    { id: 'admin_security', label: language === 'en' ? 'Edit Admin Data' : 'Dados ADM', sublabel: language === 'en' ? 'Password & PIN' : 'Senha & PIN', icon: <ShieldCheck className="w-3.5 h-3.5 text-sky-400" /> },
   ];
 
   const currentNavItems = currentRole === 'studio' ? studioNavItems : clientNavItems;
