@@ -34,6 +34,7 @@ import {
   Eye,
   Trash2,
   Music,
+  Mic2,
   Lock,
   RotateCcw,
   UserPlus,
@@ -84,6 +85,7 @@ interface StudioViewProps {
   setActiveTab: (tab: string) => void;
   onCreateQuote: (data: any) => void;
   onSendChatMessage: (data: any) => void;
+  onDeleteChatMessage?: (messageId: string) => void;
   onConfirmPayment: (bookingId: string) => void;
   onDeleteClient?: (clientId: string) => void;
   onCreateClient?: (clientData: any) => Promise<any> | void;
@@ -142,6 +144,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
   setActiveTab,
   onCreateQuote,
   onSendChatMessage,
+  onDeleteChatMessage,
   onConfirmPayment,
   onDeleteClient,
   onCreateClient,
@@ -956,8 +959,48 @@ export const StudioView: React.FC<StudioViewProps> = ({
                             >
                               <p className="leading-relaxed whitespace-pre-wrap">{msg.message}</p>
 
-                              {/* Receipt attached alert */}
-                              {msg.attachment && (
+                              {/* Attachment: Track submission (audio) */}
+                              {msg.attachment?.fileType === 'audio' ? (
+                                <div className="bg-slate-950 p-2.5 rounded-xl border border-fuchsia-500/50 space-y-2">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <p className="text-[10px] font-bold text-fuchsia-400 uppercase flex items-center gap-1">
+                                      <Mic2 className="w-3.5 h-3.5" /> Trilha de Referência
+                                    </p>
+                                    <span className="text-[9px] text-slate-400 truncate max-w-[140px]">
+                                      {msg.attachment.name}
+                                    </span>
+                                  </div>
+                                  {msg.attachment.dataUrl && (
+                                    <audio
+                                      controls
+                                      preload="metadata"
+                                      src={msg.attachment.dataUrl}
+                                      className="w-full h-9 rounded-lg"
+                                    >
+                                      Seu navegador não suporta reprodução de áudio.
+                                    </audio>
+                                  )}
+                                  <div className="flex gap-2">
+                                    <a
+                                      href={msg.attachment.dataUrl}
+                                      download={msg.attachment.name}
+                                      className="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/40 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1.5 transition"
+                                    >
+                                      <Download className="w-3 h-3" /> Baixar Trilha
+                                    </a>
+                                    {onDeleteChatMessage && (
+                                      <button
+                                        type="button"
+                                        onClick={() => onDeleteChatMessage(msg.id)}
+                                        className="px-2.5 py-1.5 bg-rose-950/60 hover:bg-rose-900/70 text-rose-300 border border-rose-500/40 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition cursor-pointer"
+                                        title="Apagar Trilha Enviada"
+                                      >
+                                        <Trash2 className="w-3 h-3" /> Apagar
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : msg.attachment ? (
                                 <div className="bg-slate-950 p-2.5 rounded-xl border border-amber-500/50 space-y-2">
                                   <div className="flex items-center justify-between">
                                     <p className="text-[10px] font-bold text-amber-400 uppercase flex items-center gap-1">
@@ -994,7 +1037,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                     </button>
                                   )}
                                 </div>
-                              )}
+                              ) : null}
                             </div>
                           </div>
                         );

@@ -711,6 +711,17 @@ function AppContent() {
           }
         });
 
+        eventSource.addEventListener('chat_message_deleted', (e: MessageEvent) => {
+          try {
+            const { messageId } = JSON.parse(e.data);
+            if (messageId) {
+              setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
+            }
+          } catch (err) {
+            console.error('Error parsing SSE chat_message_deleted:', err);
+          }
+        });
+
         eventSource.addEventListener('payment_confirmed', (e: MessageEvent) => {
           try {
             const { booking, transaction, confirmMsg, financials: updatedFinancials } = JSON.parse(e.data);
@@ -1166,7 +1177,7 @@ function AppContent() {
     setChatMessages((prev) => [...prev.filter((m) => m.id !== tempMsg.id), tempMsg]);
 
     // If sending a receipt, update booking status optimistically
-    if (msgData.type === 'receipt' || msgData.attachment) {
+    if (msgData.type === 'receipt') {
       setBookings((prev) =>
         prev.map((b) => (b.id === msgData.bookingId ? { ...b, status: 'comprovante_enviado', updatedAt: new Date().toISOString() } : b))
       );
@@ -1190,6 +1201,15 @@ function AppContent() {
       }
     } catch (err) {
       console.error('Error sending chat message:', err);
+    }
+  };
+
+  const handleDeleteChatMessage = async (messageId: string) => {
+    setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
+    try {
+      await fetch(`/api/chat/message/${messageId}`, { method: 'DELETE' });
+    } catch (err) {
+      console.error('Error deleting chat message:', err);
     }
   };
 
@@ -1814,6 +1834,7 @@ function AppContent() {
             setActiveTab={setClientActiveTab}
             onRequestBooking={handleRequestBooking}
             onSendChatMessage={handleSendChatMessage}
+            onDeleteChatMessage={handleDeleteChatMessage}
             onUpdateClientProfile={handleUpdateClientProfile}
             equipmentItems={equipmentItems}
             onUpdateEquipment={handleUpdateEquipment}
@@ -1837,6 +1858,7 @@ function AppContent() {
             setActiveTab={setStudioActiveTab}
             onCreateQuote={handleCreateQuote}
             onSendChatMessage={handleSendChatMessage}
+            onDeleteChatMessage={handleDeleteChatMessage}
             onConfirmPayment={handleConfirmPayment}
             onDeleteClient={handleDeleteClient}
             onCreateClient={handleCreateNewClient}

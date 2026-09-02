@@ -104,7 +104,7 @@ export interface PixQuote {
   paymentPlan?: string;
 }
 
-export type ChatMessageType = 'text' | 'quote' | 'receipt' | 'confirmation' | 'system' | 'quote_proposal' | 'receipt_attached';
+export type ChatMessageType = 'text' | 'quote' | 'receipt' | 'confirmation' | 'system' | 'quote_proposal' | 'receipt_attached' | 'track_submission';
 
 export interface ChatAttachment {
   name: string;

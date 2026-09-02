@@ -1197,7 +1197,7 @@ async function startApp() {
     chatMessages.push(newMsg);
 
     // If receipt was uploaded by client
-    if (type === 'receipt' || attachment) {
+    if (type === 'receipt') {
       booking.status = 'comprovante_enviado';
       booking.updatedAt = new Date().toISOString();
 
@@ -1211,6 +1211,14 @@ async function startApp() {
         title: 'Novo Comprovante PIX no Chat!',
         message: `${senderName} enviou o comprovante de pagamento para ${booking.serviceName}.`,
         type: 'payment',
+        bookingId,
+      });
+    } else if (type === 'track_submission') {
+      addNotification({
+        targetRole: 'studio',
+        title: 'Nova Trilha Enviada pelo Cliente!',
+        message: `${senderName} enviou uma trilha de referência para ${booking.serviceName}.`,
+        type: 'info',
         bookingId,
       });
     } else {
@@ -1229,6 +1237,22 @@ async function startApp() {
     saveDb();
     broadcastEvent('chat_message', { message: newMsg, booking });
     res.json({ success: true, message: newMsg, booking });
+  });
+
+  // API ROUTE: Delete Chat Message (Admin can delete any message, client can delete own)
+  app.delete('/api/chat/message/:messageId', (req, res) => {
+    const { messageId } = req.params;
+    const msgIndex = chatMessages.findIndex((m) => m.id === messageId);
+    if (msgIndex === -1) {
+      return res.status(404).json({ error: 'Mensagem não encontrada' });
+    }
+
+    const deletedMsg = chatMessages[msgIndex];
+    chatMessages.splice(msgIndex, 1);
+
+    broadcastEvent('chat_message_deleted', { messageId, bookingId: deletedMsg.bookingId });
+    saveDb();
+    res.json({ success: true, messageId });
   });
 
   // API ROUTE: Confirm PIX Payment by Studio (Efetivar Pagamento & Baixa Financeira)

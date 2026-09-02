@@ -92,6 +92,7 @@ interface ClientViewProps {
   setActiveTab: (tab: string) => void;
   onRequestBooking: (data: any) => Promise<any> | void;
   onSendChatMessage: (data: any) => void;
+  onDeleteChatMessage?: (messageId: string) => void;
   onUpdateClientProfile?: (updatedData: Partial<UserProfile>) => void;
 }
 
@@ -114,6 +115,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
   setActiveTab,
   onRequestBooking,
   onSendChatMessage,
+  onDeleteChatMessage,
   onUpdateClientProfile,
 }) => {
   // New Booking State
@@ -186,6 +188,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
   } | null>(null);
   const [copiedChatPixKey, setCopiedChatPixKey] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const audioInputRef = React.useRef<HTMLInputElement>(null);
   const chatEndRef = React.useRef<HTMLDivElement>(null);
 
   const handleChatFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,6 +205,43 @@ export const ClientView: React.FC<ClientViewProps> = ({
       });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleTrackFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/i)) {
+      alert('Por favor, envie um arquivo de áudio válido (MP3, WAV, M4A, OGG ou FLAC).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setPendingAttachment({
+        name: file.name,
+        fileType: 'audio',
+        dataUrl,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Send a track submission message
+  const handleSendTrackSubmission = () => {
+    if (!pendingAttachment || pendingAttachment.fileType !== 'audio' || !selectedChatBooking) return;
+    onSendChatMessage({
+      bookingId: selectedChatBooking.id,
+      senderId: activeClient?.id || '',
+      senderRole: 'client',
+      senderName: activeClient?.bandOrArtistName || activeClient?.name || 'Cliente',
+      message: `🎵 Trilha de referência enviada: ${pendingAttachment.name}`,
+      type: 'track_submission',
+      attachment: { ...pendingAttachment },
+    });
+    setChatInputText('');
+    setPendingAttachment(null);
   };
 
   // Profile Form States
@@ -641,8 +681,18 @@ export const ClientView: React.FC<ClientViewProps> = ({
       senderId: activeClient?.id || '',
       senderRole: 'client',
       senderName: activeClient?.bandOrArtistName || activeClient?.name || 'Cliente',
-      message: chatInputText.trim() || (pendingAttachment ? 'Comprovante de pagamento PIX enviado!' : ''),
-      type: pendingAttachment ? 'receipt' : 'text',
+      message:
+        chatInputText.trim() ||
+        (pendingAttachment
+          ? pendingAttachment.fileType === 'audio'
+            ? `🎵 Trilha de referência enviada: ${pendingAttachment.name}`
+            : 'Comprovante de pagamento PIX enviado!'
+          : ''),
+      type: pendingAttachment
+        ? pendingAttachment.fileType === 'audio'
+          ? 'track_submission'
+          : 'receipt'
+        : 'text',
       attachment: pendingAttachment ? { ...pendingAttachment } : undefined,
     });
 
@@ -2121,19 +2171,45 @@ export const ClientView: React.FC<ClientViewProps> = ({
                                 </div>
                               )}
 
-                              {/* Attachment Preview (Comprovante) */}
+                              {/* Attachment Preview (Comprovante / Trilha de Referência) */}
                               {msg.attachment && (
                                 <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-700 space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-amber-400 uppercase flex items-center gap-1">
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" /> Comprovante Anexado
-                                    </span>
+                                  <div className="flex items-center justify-between gap-1">
+                                    {msg.attachment.fileType === 'audio' ? (
+                                      <span className="text-[10px] font-bold text-fuchsia-400 uppercase flex items-center gap-1">
+                                        <Mic2 className="w-3.5 h-3.5 text-fuchsia-400" /> Trilha de Referência
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] font-bold text-amber-400 uppercase flex items-center gap-1">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" /> Comprovante Anexado
+                                      </span>
+                                    )}
                                     <span className="text-[9px] text-slate-400 truncate max-w-[140px]">
                                       {msg.attachment.name}
                                     </span>
                                   </div>
 
-                                  {msg.attachment.dataUrl ? (
+                                  {msg.attachment.fileType === 'audio' ? (
+                                    <div className="space-y-2">
+                                      <audio
+                                        controls
+                                        preload="metadata"
+                                        src={msg.attachment.dataUrl}
+                                        className="w-full h-9 rounded-lg"
+                                      >
+                                        Seu navegador não suporta reprodução de áudio.
+                                      </audio>
+                                      {isClientSender && onDeleteChatMessage && (
+                                        <button
+                                          type="button"
+                                          onClick={() => onDeleteChatMessage(msg.id)}
+                                          className="w-full py-1.5 bg-rose-950/60 hover:bg-rose-900/70 text-rose-300 border border-rose-500/40 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition cursor-pointer"
+                                        >
+                                          <Trash2 className="w-3 h-3" /> Apagar Trilha Enviada
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : msg.attachment.dataUrl ? (
                                     <div
                                       onClick={() =>
                                         setLightboxAttachment({
@@ -2181,7 +2257,11 @@ export const ClientView: React.FC<ClientViewProps> = ({
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[#00FF41]">
-                            <FileText className="w-6 h-6" />
+                            {pendingAttachment.fileType === 'audio' ? (
+                              <Music2 className="w-6 h-6" />
+                            ) : (
+                              <FileText className="w-6 h-6" />
+                            )}
                           </div>
                         )}
                         <div>
@@ -2189,7 +2269,9 @@ export const ClientView: React.FC<ClientViewProps> = ({
                             {pendingAttachment.name}
                           </p>
                           <span className="text-[10px] text-[#00FF41] font-bold">
-                            Anexo: Comprovante de Pagamento PIX
+                            {pendingAttachment.fileType === 'audio'
+                              ? '🎵 Trilha de Referência (Guia Musical)'
+                              : 'Anexo: Comprovante de Pagamento PIX'}
                           </span>
                         </div>
                       </div>
@@ -2214,6 +2296,15 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     className="hidden"
                   />
 
+                  {/* Hidden Audio Input */}
+                  <input
+                    type="file"
+                    ref={audioInputRef}
+                    onChange={handleTrackFileSelect}
+                    accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
+                    className="hidden"
+                  />
+
                   {/* Chat Input Bar */}
                   <form onSubmit={handleSendTextChatMessage} className="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2">
                     <button
@@ -2229,9 +2320,27 @@ export const ClientView: React.FC<ClientViewProps> = ({
                       <Paperclip className="w-4 h-4" />
                     </button>
 
+                    {/* Music Guide / Track Upload Button */}
+                    <button
+                      type="button"
+                      onClick={() => audioInputRef.current?.click()}
+                      className={`p-2.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
+                        pendingAttachment?.fileType === 'audio'
+                          ? 'bg-purple-500 text-white border-purple-400'
+                          : 'bg-zinc-900 text-fuchsia-400 hover:text-fuchsia-300 border-zinc-800 hover:border-fuchsia-500/60'
+                      }`}
+                      title="Enviar Trilha de Referência (MP3) - guia da música desejada"
+                    >
+                      <Mic2 className="w-4 h-4" />
+                    </button>
+
                     <input
                       type="text"
-                      placeholder="Escreva sua mensagem ou envie o comprovante PIX..."
+                      placeholder={
+                        pendingAttachment?.fileType === 'audio'
+                          ? 'Descreva a guia da música (opcional)...'
+                          : 'Escreva sua mensagem ou envie o comprovante PIX...'
+                      }
                       value={chatInputText}
                       onChange={(e) => setChatInputText(e.target.value)}
                       className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00FF41]"
