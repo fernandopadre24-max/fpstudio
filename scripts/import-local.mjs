@@ -11,6 +11,7 @@ const STATE_KEYS = [
   'adminCredentials',
   'rooms',
   'services',
+  'equipmentItems',
   'clients',
   'bookings',
   'quotes',

@@ -52,6 +52,7 @@ import {
   ClientPerformanceReport,
   StudioRoom,
   StudioService,
+  StudioEquipmentItem,
   AdminCredentials,
 } from '../types';
 import { EquipmentView } from './EquipmentView';
@@ -91,6 +92,10 @@ interface StudioViewProps {
   onUpdateService?: (service: StudioService) => void;
   onCreateService?: (service: Partial<StudioService>) => void;
   onDeleteService?: (serviceId: string) => void;
+  equipmentItems?: StudioEquipmentItem[];
+  onUpdateEquipment?: (item: StudioEquipmentItem) => void;
+  onCreateEquipment?: (item: Partial<StudioEquipmentItem>) => void;
+  onDeleteEquipment?: (itemId: string) => void;
   onCancelTodayBookings?: (
     action?: 'cancel' | 'delete',
     period?: 'yesterday' | 'today' | 'recent' | 'all',
@@ -145,6 +150,10 @@ export const StudioView: React.FC<StudioViewProps> = ({
   onUpdateService,
   onCreateService,
   onDeleteService,
+  equipmentItems = [],
+  onUpdateEquipment,
+  onCreateEquipment,
+  onDeleteEquipment,
   onCancelTodayBookings,
   onDeleteBooking,
   adminCredentials,
@@ -2114,8 +2123,12 @@ export const StudioView: React.FC<StudioViewProps> = ({
           <EquipmentView
             currentRole="studio"
             defaultSection={activeTab === 'services' ? 'services' : activeTab === 'equipment' ? 'equipment' : 'all'}
+            equipmentItems={equipmentItems}
             services={services}
             onNavigateToBooking={() => setActiveTab('agenda')}
+            onUpdateEquipment={onUpdateEquipment}
+            onCreateEquipment={onCreateEquipment}
+            onDeleteEquipment={onDeleteEquipment}
             onUpdateService={onUpdateService}
             onCreateService={onCreateService}
             onDeleteService={onDeleteService}

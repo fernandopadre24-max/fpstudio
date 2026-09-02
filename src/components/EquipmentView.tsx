@@ -45,6 +45,10 @@ interface EquipmentViewProps {
   onUpdateService?: (service: StudioService) => void;
   onCreateService?: (service: Partial<StudioService>) => void;
   onDeleteService?: (serviceId: string) => void;
+  equipmentItems?: StudioEquipmentItem[];
+  onUpdateEquipment?: (item: StudioEquipmentItem) => void;
+  onCreateEquipment?: (item: Partial<StudioEquipmentItem>) => void;
+  onDeleteEquipment?: (itemId: string) => void;
 }
 
 export const EquipmentView: React.FC<EquipmentViewProps> = ({
@@ -55,6 +59,10 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
   onUpdateService,
   onCreateService,
   onDeleteService,
+  equipmentItems: propEquipmentItems,
+  onUpdateEquipment,
+  onCreateEquipment,
+  onDeleteEquipment,
 }) => {
   const [viewSection, setViewSection] = useState<'all' | 'services' | 'equipment'>(defaultSection);
 
@@ -66,6 +74,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
 
   // Equipment States
   const [equipmentList, setEquipmentList] = useState<StudioEquipmentItem[]>(() => {
+    if (propEquipmentItems && propEquipmentItems.length > 0) return propEquipmentItems;
     try {
       const saved = safeStorage.getItem('fpstudio_equipment_items');
       if (saved) {
@@ -131,6 +140,13 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
       setServiceList(propServices);
     }
   }, [propServices]);
+
+  // Synchronize with server equipment items (shared across machines)
+  useEffect(() => {
+    if (propEquipmentItems && propEquipmentItems.length > 0) {
+      setEquipmentList(propEquipmentItems);
+    }
+  }, [propEquipmentItems]);
 
   // Save to local storage on change
   const saveEquipmentToStorage = (items: StudioEquipmentItem[]) => {
@@ -254,6 +270,22 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
           : item
       );
       saveEquipmentToStorage(updated);
+
+      const savedItem = updated.find((it) => it.id === editingItem.id);
+      if (savedItem && onUpdateEquipment) {
+        onUpdateEquipment(savedItem);
+      }
+      try {
+        if (savedItem) {
+          await fetch(`/api/equipment/${savedItem.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(savedItem),
+          });
+        }
+      } catch (err) {
+        console.error('Error saving equipment to API:', err);
+      }
     } else {
       // Create new
       const newItem: StudioEquipmentItem = {
@@ -270,16 +302,36 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
         includedInStudio: true,
       };
       saveEquipmentToStorage([newItem, ...equipmentList]);
+      if (onCreateEquipment) {
+        onCreateEquipment(newItem);
+      }
+      try {
+        await fetch('/api/equipment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newItem),
+        });
+      } catch (err) {
+        console.error('Error creating equipment in API:', err);
+      }
     }
 
     setIsEditModalOpen(false);
     setEditingItem(null);
   };
 
-  const handleDeleteItem = (id: string) => {
+  const handleDeleteItem = async (id: string) => {
     if (confirm('Tem certeza que deseja remover este item do acervo do estúdio?')) {
       const updated = equipmentList.filter((item) => item.id !== id);
       saveEquipmentToStorage(updated);
+      if (onDeleteEquipment) {
+        onDeleteEquipment(id);
+      }
+      try {
+        await fetch(`/api/equipment/${id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.error('Error deleting equipment from API:', err);
+      }
       if (selectedItem?.id === id) setSelectedItem(null);
     }
   };

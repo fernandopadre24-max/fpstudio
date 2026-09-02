@@ -51,6 +51,7 @@ import { MapModal } from './MapModal';
 import {
   StudioService,
   StudioRoom,
+  StudioEquipmentItem,
   BookingRequest,
   ChatMessage,
   PixQuote,
@@ -83,6 +84,10 @@ interface ClientViewProps {
   quotes: PixQuote[];
   chatMessages: ChatMessage[];
   studioInfo: any;
+  equipmentItems?: StudioEquipmentItem[];
+  onUpdateEquipment?: (item: StudioEquipmentItem) => void;
+  onCreateEquipment?: (item: Partial<StudioEquipmentItem>) => void;
+  onDeleteEquipment?: (itemId: string) => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onRequestBooking: (data: any) => Promise<any> | void;
@@ -101,6 +106,10 @@ export const ClientView: React.FC<ClientViewProps> = ({
   quotes = [],
   chatMessages = [],
   studioInfo = {} as any,
+  equipmentItems = [],
+  onUpdateEquipment,
+  onCreateEquipment,
+  onDeleteEquipment,
   activeTab = 'new_booking',
   setActiveTab,
   onRequestBooking,
@@ -2747,7 +2756,11 @@ export const ClientView: React.FC<ClientViewProps> = ({
           <EquipmentView
             currentRole="client"
             defaultSection={activeTab === 'services' ? 'services' : activeTab === 'equipment' ? 'equipment' : 'all'}
+            equipmentItems={equipmentItems}
             services={services}
+            onUpdateEquipment={onUpdateEquipment}
+            onCreateEquipment={onCreateEquipment}
+            onDeleteEquipment={onDeleteEquipment}
             onNavigateToBooking={(serviceId) => {
               if (serviceId) {
                 const srv = services.find((s) => s.id === serviceId);

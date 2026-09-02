@@ -14,6 +14,7 @@ import {
   Role,
   UserProfile,
   StudioService,
+  StudioEquipmentItem,
   StudioRoom,
   BookingRequest,
   PixQuote,
@@ -30,6 +31,7 @@ import {
   INITIAL_SERVICES,
   INITIAL_ADMIN_CREDENTIALS,
 } from './data/initialData';
+import { INITIAL_EQUIPMENT_ITEMS } from './data/equipmentData';
 import { safeStorage } from './utils/safeStorage';
 import { playNotificationChime } from './utils/audioUtils';
 
@@ -311,6 +313,16 @@ function AppContent() {
     } catch (e) {}
     return INITIAL_SERVICES;
   });
+  const [equipmentItems, setEquipmentItems] = useState<StudioEquipmentItem[]>(() => {
+    try {
+      const saved = safeStorage.getItem('fpstudio_equipment_items');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_EQUIPMENT_ITEMS;
+  });
   const [clients, setClients] = useState<UserProfile[]>(() => {
     try {
       const saved = safeStorage.getItem('fpstudio_clients_data');
@@ -444,6 +456,55 @@ function AppContent() {
           safeStorage.setItem('fpstudio_services_data', JSON.stringify(finalServices));
         } catch (e) {}
         setServices(finalServices);
+
+        // Merge Server Equipment with Local Storage so Material synced across machines
+        const serverEquipment: StudioEquipmentItem[] = data.equipmentItems || [];
+        let finalEquipment: StudioEquipmentItem[] = [...serverEquipment];
+        const localSavedEquip = safeStorage.getItem('fpstudio_equipment_items');
+        if (localSavedEquip) {
+          try {
+            const localEquipment: StudioEquipmentItem[] = JSON.parse(localSavedEquip);
+            if (Array.isArray(localEquipment) && localEquipment.length > 0) {
+              const equipMap = new Map<string, StudioEquipmentItem>();
+              serverEquipment.forEach((e) => equipMap.set(e.id, e));
+              localEquipment.forEach((localEq) => {
+                if (!localEq || !localEq.id) return;
+                const serverEq = equipMap.get(localEq.id);
+                if (!serverEq) {
+                  equipMap.set(localEq.id, localEq);
+                  fetch('/api/equipment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(localEq),
+                  }).catch(() => {});
+                } else {
+                  const hasDiff =
+                    Boolean(localEq.imageUrl && localEq.imageUrl !== serverEq.imageUrl) ||
+                    (localEq.price !== undefined && localEq.price !== serverEq.price) ||
+                    Boolean(localEq.priceDetails && localEq.priceDetails !== serverEq.priceDetails) ||
+                    Boolean(localEq.title && localEq.title !== serverEq.title) ||
+                    Boolean(localEq.description && localEq.description !== serverEq.description);
+                  if (hasDiff) {
+                    const mergedEq = { ...serverEq, ...localEq };
+                    equipMap.set(localEq.id, mergedEq);
+                    fetch(`/api/equipment/${localEq.id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(mergedEq),
+                    }).catch(() => {});
+                  }
+                }
+              });
+              finalEquipment = Array.from(equipMap.values());
+            }
+          } catch (e) {
+            console.warn('[App] Erro ao restaurar equipamentos do localStorage:', e);
+          }
+        }
+        try {
+          safeStorage.setItem('fpstudio_equipment_items', JSON.stringify(finalEquipment));
+        } catch (e) {}
+        setEquipmentItems(finalEquipment);
 
         // Merge Server Clients with Local Storage to ensure persistence across restarts
         let finalClients: UserProfile[] = data.clients || [];
@@ -784,6 +845,33 @@ function AppContent() {
           }
         });
 
+        eventSource.addEventListener('equipment_created', (e: MessageEvent) => {
+          try {
+            const itemData: StudioEquipmentItem = JSON.parse(e.data);
+            setEquipmentItems((prev) => [...prev.filter((it) => it.id !== itemData.id), itemData]);
+          } catch (err) {
+            console.error('Error parsing SSE equipment_created:', err);
+          }
+        });
+
+        eventSource.addEventListener('equipment_updated', (e: MessageEvent) => {
+          try {
+            const itemData: StudioEquipmentItem = JSON.parse(e.data);
+            setEquipmentItems((prev) => prev.map((it) => (it.id === itemData.id ? itemData : it)));
+          } catch (err) {
+            console.error('Error parsing SSE equipment_updated:', err);
+          }
+        });
+
+        eventSource.addEventListener('equipment_deleted', (e: MessageEvent) => {
+          try {
+            const { id } = JSON.parse(e.data);
+            setEquipmentItems((prev) => prev.filter((it) => it.id !== id));
+          } catch (err) {
+            console.error('Error parsing SSE equipment_deleted:', err);
+          }
+        });
+
         eventSource.addEventListener('new_review', (e: MessageEvent) => {
           try {
             const newRev: ClientReview = JSON.parse(e.data);
@@ -963,6 +1051,84 @@ function AppContent() {
     }
 
     return { success: true, booking: fallbackBooking, quote: fallbackQuote };
+  };
+
+  const handleUpdateEquipment = async (itemData: StudioEquipmentItem) => {
+    setEquipmentItems((prev) => {
+      const next = prev.map((it) => (it.id === itemData.id ? itemData : it));
+      try {
+        safeStorage.setItem('fpstudio_equipment_items', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    try {
+      const res = await fetch(`/api/equipment/${itemData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(itemData),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const savedItem = data.item || itemData;
+        setEquipmentItems((prev) => {
+          const next = prev.map((it) => (it.id === savedItem.id ? savedItem : it));
+          try {
+            safeStorage.setItem('fpstudio_equipment_items', JSON.stringify(next));
+          } catch (e) {}
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error('Error updating equipment on server:', err);
+    }
+  };
+
+  const handleCreateEquipment = async (newItemData: Partial<StudioEquipmentItem>) => {
+    try {
+      const res = await fetch('/api/equipment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newItemData),
+      });
+      const data = await res.json();
+      if (data.item) {
+        setEquipmentItems((prev) => {
+          const next = [...prev.filter((it) => it.id !== data.item.id), data.item];
+          try {
+            safeStorage.setItem('fpstudio_equipment_items', JSON.stringify(next));
+          } catch (e) {}
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error('Error creating equipment:', err);
+      if (newItemData.id) {
+        setEquipmentItems((prev) => {
+          const next = [...prev.filter((it) => it.id !== newItemData.id), newItemData as StudioEquipmentItem];
+          try {
+            safeStorage.setItem('fpstudio_equipment_items', JSON.stringify(next));
+          } catch (e) {}
+          return next;
+        });
+      }
+    }
+  };
+
+  const handleDeleteEquipment = async (id: string) => {
+    try {
+      await fetch(`/api/equipment/${id}`, {
+        method: 'DELETE',
+      });
+    } catch (err) {
+      console.error('Error deleting equipment:', err);
+    }
+    setEquipmentItems((prev) => {
+      const next = prev.filter((it) => it.id !== id);
+      try {
+        safeStorage.setItem('fpstudio_equipment_items', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
   };
 
   const handleCreateQuote = async (quoteData: any) => {
@@ -1649,6 +1815,10 @@ function AppContent() {
             onRequestBooking={handleRequestBooking}
             onSendChatMessage={handleSendChatMessage}
             onUpdateClientProfile={handleUpdateClientProfile}
+            equipmentItems={equipmentItems}
+            onUpdateEquipment={handleUpdateEquipment}
+            onCreateEquipment={handleCreateEquipment}
+            onDeleteEquipment={handleDeleteEquipment}
           />
         ) : (
           <StudioView
@@ -1680,6 +1850,10 @@ function AppContent() {
             adminCredentials={adminCredentials}
             onUpdateAdminCredentials={handleUpdateAdminCredentials}
             onOpenAdminSecurityModal={() => setIsAdminSecurityModalOpen(true)}
+            equipmentItems={equipmentItems}
+            onUpdateEquipment={handleUpdateEquipment}
+            onCreateEquipment={handleCreateEquipment}
+            onDeleteEquipment={handleDeleteEquipment}
           />
         )}
       </main>

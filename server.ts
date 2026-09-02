@@ -17,6 +17,7 @@ import {
   INITIAL_ADMIN_CREDENTIALS,
 } from './src/data/initialData';
 import { INITIAL_REVIEWS } from './src/data/reviewsData';
+import { INITIAL_EQUIPMENT_ITEMS } from './src/data/equipmentData';
 import {
   BookingRequest,
   ChatMessage,
@@ -27,6 +28,7 @@ import {
   ClientPerformanceReport,
   UserProfile,
   StudioService,
+  StudioEquipmentItem,
   ClientReview,
   AdminCredentials,
 } from './src/types';
@@ -47,6 +49,7 @@ const SEED_FILE = path.join(process.cwd(), 'seed_state.json');
 let studioInfo = { ...INITIAL_STUDIO_INFO };
 let rooms = [...INITIAL_ROOMS];
 let services: StudioService[] = [...INITIAL_SERVICES];
+let equipmentItems: StudioEquipmentItem[] = [...INITIAL_EQUIPMENT_ITEMS];
 let clients = [...INITIAL_CLIENTS];
 let bookings: BookingRequest[] = [...INITIAL_BOOKINGS];
 let quotes: PixQuote[] = [...INITIAL_QUOTES];
@@ -74,6 +77,12 @@ function applyPersistedData(data: any) {
     services = Array.from(existingMap.values());
   }
   clients = Array.isArray(data.clients) ? data.clients : [];
+  if (Array.isArray(data.equipmentItems) && data.equipmentItems.length > 0) {
+    const eqMap = new Map<string, StudioEquipmentItem>();
+    INITIAL_EQUIPMENT_ITEMS.forEach((e) => eqMap.set(e.id, e));
+    data.equipmentItems.forEach((e: StudioEquipmentItem) => eqMap.set(e.id, e));
+    equipmentItems = Array.from(eqMap.values());
+  }
   bookings = Array.isArray(data.bookings) ? data.bookings : [];
   quotes = Array.isArray(data.quotes) ? data.quotes : [];
   chatMessages = Array.isArray(data.chatMessages) ? data.chatMessages : [];
@@ -137,6 +146,7 @@ function buildSnapshot(): StateSnapshot {
     adminCredentials,
     rooms,
     services,
+    equipmentItems,
     clients,
     bookings,
     quotes,
@@ -449,6 +459,7 @@ async function startApp() {
       transactions,
       reviews,
       financials: computeFinancials(),
+      equipmentItems,
     });
   });
 
@@ -851,6 +862,87 @@ async function startApp() {
     services.splice(serviceIndex, 1);
     saveDb();
     broadcastEvent('service_deleted', { id: removed.id });
+    res.json({ success: true, id: removed.id });
+  });
+
+  // API ROUTE: Create or Upsert Equipment (Material do Estúdio)
+  app.post('/api/equipment', (req, res) => {
+    const item = req.body as Partial<StudioEquipmentItem>;
+    if (!item || !item.title || !item.description) {
+      return res.status(400).json({ error: 'Título e descrição do equipamento são obrigatórios' });
+    }
+
+    const itemId = item.id && item.id.trim().length > 0 ? item.id : `eq-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const existingIndex = equipmentItems.findIndex((e) => e.id === itemId);
+
+    const itemObj: StudioEquipmentItem = {
+      id: itemId,
+      title: item.title,
+      categoryTag: item.categoryTag || 'EQUIPAMENTOS',
+      modelTag: item.modelTag || 'PRO EQUIPMENT',
+      description: item.description,
+      imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&auto=format&fit=crop&q=80',
+      price: item.price !== undefined ? Number(item.price) : 0,
+      priceDetails: item.priceDetails || '',
+      fullSpecs: Array.isArray(item.fullSpecs) ? item.fullSpecs : ['Equipamento de alta fidelidade para o FPStudio'],
+      recommendedUses: Array.isArray(item.recommendedUses) ? item.recommendedUses : ['Gravação', 'Mixagem'],
+      includedInStudio: item.includedInStudio !== undefined ? item.includedInStudio : true,
+    };
+
+    if (existingIndex >= 0) {
+      equipmentItems[existingIndex] = itemObj;
+      saveDb();
+      broadcastEvent('equipment_updated', itemObj);
+      return res.json({ success: true, item: itemObj });
+    } else {
+      equipmentItems.push(itemObj);
+      saveDb();
+      broadcastEvent('equipment_created', itemObj);
+      return res.json({ success: true, item: itemObj });
+    }
+  });
+
+  // API ROUTE: Update Equipment (imagens, valores, descrições)
+  app.put('/api/equipment/:id', (req, res) => {
+    const { id } = req.params;
+    const index = equipmentItems.findIndex((e) => e.id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: 'Equipamento não encontrado' });
+    }
+
+    const body = req.body as Partial<StudioEquipmentItem>;
+    const updated: StudioEquipmentItem = {
+      ...equipmentItems[index],
+      ...(body.title !== undefined && { title: body.title }),
+      ...(body.categoryTag !== undefined && { categoryTag: body.categoryTag }),
+      ...(body.modelTag !== undefined && { modelTag: body.modelTag }),
+      ...(body.description !== undefined && { description: body.description }),
+      ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
+      ...(body.price !== undefined && { price: Number(body.price) }),
+      ...(body.priceDetails !== undefined && { priceDetails: body.priceDetails }),
+      ...(Array.isArray(body.fullSpecs) && { fullSpecs: body.fullSpecs }),
+      ...(Array.isArray(body.recommendedUses) && { recommendedUses: body.recommendedUses }),
+      ...(body.includedInStudio !== undefined && { includedInStudio: body.includedInStudio }),
+    };
+
+    equipmentItems[index] = updated;
+    saveDb();
+    broadcastEvent('equipment_updated', updated);
+    res.json({ success: true, item: updated });
+  });
+
+  // API ROUTE: Delete Equipment
+  app.delete('/api/equipment/:id', (req, res) => {
+    const { id } = req.params;
+    const index = equipmentItems.findIndex((e) => e.id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: 'Equipamento não encontrado' });
+    }
+
+    const removed = equipmentItems[index];
+    equipmentItems.splice(index, 1);
+    saveDb();
+    broadcastEvent('equipment_deleted', { id: removed.id });
     res.json({ success: true, id: removed.id });
   });
 
