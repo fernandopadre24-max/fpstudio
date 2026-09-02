@@ -195,7 +195,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const clientNavItems: NavItem[] = [
     { id: 'new_booking', label: language === 'en' ? 'Schedule' : 'Agendar', icon: <Calendar className="w-3.5 h-3.5" /> },
     { id: 'bookings', label: language === 'en' ? 'My Bookings' : 'Meus Pedidos', icon: <FileCheck2 className="w-3.5 h-3.5" /> },
-    { id: 'services_equipment', label: language === 'en' ? 'Services' : 'Serviços', sublabel: language === 'en' ? 'Gear' : 'Material', icon: <Music2 className="w-3.5 h-3.5" /> },
     { id: 'reviews', label: language === 'en' ? 'Reviews' : 'Depoimentos', icon: <Star className="w-3.5 h-3.5 text-amber-400" /> },
     { id: 'chat', label: language === 'en' ? 'Chat' : 'Chat', icon: <MessageSquare className="w-3.5 h-3.5" /> },
     { id: 'profile', label: '', title: language === 'en' ? 'My Profile' : 'Meu Cadastro', icon: <UserCheck className="w-4 h-4" /> },
@@ -204,7 +203,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const studioNavItems: NavItem[] = [
     { id: 'agenda', label: language === 'en' ? 'Bookings & Orders' : 'Agendamentos', icon: <Calendar className="w-3.5 h-3.5" /> },
     { id: 'client_reports', label: language === 'en' ? 'Clients' : 'Clientes', icon: <Users className="w-3.5 h-3.5" /> },
-    { id: 'services_equipment', label: language === 'en' ? 'Services' : 'Serviços', sublabel: language === 'en' ? 'Gear' : 'Material', icon: <Music2 className="w-3.5 h-3.5" /> },
     { id: 'reviews', label: language === 'en' ? 'Reviews Moderation' : 'Avaliações', icon: <Star className="w-3.5 h-3.5 text-amber-400" /> },
     { id: 'financials', label: language === 'en' ? 'Finances' : 'Financeiro', icon: <DollarSign className="w-3.5 h-3.5" /> },
     { id: 'ai_assistant', label: language === 'en' ? 'AI Assistant' : 'Assistente IA', icon: <Bot className="w-3.5 h-3.5" /> },
@@ -295,11 +293,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             isStudioMode ? 'bg-[#0f172a]/95 border-slate-700/80' : 'bg-[#121216]/90 border-zinc-800/90'
           }`}>
             {currentNavItems.map((item) => {
-              const isActive =
-                activeTab === item.id ||
-                (item.id === 'services_equipment' && (activeTab === 'services' || activeTab === 'equipment' || activeTab === 'services_equipment')) ||
-                (item.id === 'chat_budget' && activeTab === 'chat') ||
-                (item.id === 'chat' && activeTab === 'chat_budget');
+               const isActive =
+                 activeTab === item.id ||
+                 (item.id === 'chat_budget' && activeTab === 'chat') ||
+                 (item.id === 'chat' && activeTab === 'chat_budget');
 
               return (
                 <button
@@ -699,11 +696,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile / Tablet Horizontal Menu Strip - ALWAYS VISIBLE */}
         <div className="md:hidden py-1.5 border-t border-zinc-800/80 overflow-x-auto no-scrollbar flex items-center gap-1.5">
           {currentNavItems.map((item) => {
-            const isActive =
-              activeTab === item.id ||
-              (item.id === 'services_equipment' && (activeTab === 'services' || activeTab === 'equipment' || activeTab === 'services_equipment')) ||
-              (item.id === 'chat_budget' && activeTab === 'chat') ||
-              (item.id === 'chat' && activeTab === 'chat_budget');
+             const isActive =
+               activeTab === item.id ||
+               (item.id === 'chat_budget' && activeTab === 'chat') ||
+               (item.id === 'chat' && activeTab === 'chat_budget');
 
             return (
               <button
