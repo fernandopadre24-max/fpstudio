@@ -3,6 +3,17 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { BookingRequest, TransactionRecord, ClientPerformanceReport, FinancialSummary } from '../types';
 
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /**
  * Format currency to Brazilian Real (R$)
  */
@@ -118,7 +129,7 @@ export function exportFinancialsPDF(summary: FinancialSummary, transactions: Tra
     doc.text(`Página ${i} de ${pageCount} - Studio Som do Universo - Sistema Integrado PIX`, 14, 285);
   }
 
-  doc.save(`Fluxo_de_Caixa_Studio_${new Date().toISOString().slice(0, 10)}.pdf`);
+  triggerDownload(doc.output('blob'), `Fluxo_de_Caixa_Studio_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 
 /**
@@ -151,7 +162,8 @@ export function exportFinancialsExcel(transactions: TransactionRecord[], summary
   XLSX.utils.book_append_sheet(workbook, sheetTx, 'Transações PIX');
   XLSX.utils.book_append_sheet(workbook, sheetSummary, 'Resumo Geral');
 
-  XLSX.writeFile(workbook, `Fluxo_Caixa_Studio_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  const out = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+  triggerDownload(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `Fluxo_Caixa_Studio_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 /**
@@ -235,7 +247,7 @@ export function exportClientReportPDF(report: ClientPerformanceReport) {
   doc.text(`• Primeira sessão gravada em: ${formatDateBR(report.firstSessionDate)}`, 14, finalY + 30);
   doc.text(`• Última atividade no estúdio: ${formatDateBR(report.lastSessionDate)}`, 14, finalY + 36);
 
-  doc.save(`Relatorio_Cliente_${report.clientName.replace(/\s+/g, '_')}.pdf`);
+  triggerDownload(doc.output('blob'), `Relatorio_Cliente_${report.clientName.replace(/\s+/g, '_')}.pdf`);
 }
 
 /**
@@ -271,7 +283,8 @@ export function exportClientReportExcel(report: ClientPerformanceReport) {
   XLSX.utils.book_append_sheet(workbook, sheetInfo, 'Resumo do Cliente');
   XLSX.utils.book_append_sheet(workbook, sheetBookings, 'Histórico de Agendamentos');
 
-  XLSX.writeFile(workbook, `Relatorio_Cliente_${report.clientName.replace(/\s+/g, '_')}.xlsx`);
+  const out = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+  triggerDownload(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `Relatorio_Cliente_${report.clientName.replace(/\s+/g, '_')}.xlsx`);
 }
 
 /**
@@ -346,5 +359,5 @@ export function exportReceiptPDF(booking: BookingRequest, studioInfo: any) {
   doc.setFont('helvetica', 'normal');
   doc.text(`Apresente este comprovante na recepção do estúdio. Boa sessão de gravação!`, 18, finalY + 30);
 
-  doc.save(`Comprovante_Agendamento_${booking.id}.pdf`);
+  triggerDownload(doc.output('blob'), `Comprovante_Agendamento_${booking.id}.pdf`);
 }

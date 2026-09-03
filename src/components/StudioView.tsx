@@ -2346,10 +2346,15 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 </div>
                 {(() => {
                   const clientBookings = bookings.filter(b => b.clientId === detailModalClient.id || b.clientName === detailModalClient.name);
+                  const clientBookingsSum = clientBookings.reduce((s, b) => s + (Number(b.totalAmount) || 0), 0);
                   return (
-                    <span className="text-xs font-bold text-zinc-400">
-                      Total: <span className="text-[#00FF41]">{clientBookings.length}</span> {clientBookings.length === 1 ? t('clients_order_singular') : t('clients_order_plural')}
-                    </span>
+                    <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
+                      <span>
+                        Total: <span className="text-[#00FF41]">{clientBookings.length}</span> {clientBookings.length === 1 ? t('clients_order_singular') : t('clients_order_plural')}
+                      </span>
+                      <span className="text-zinc-600">•</span>
+                      <span className="font-black text-white">{formatBRL(clientBookingsSum)}</span>
+                    </div>
                   );
                 })()}
               </div>
@@ -2425,26 +2430,39 @@ export const StudioView: React.FC<StudioViewProps> = ({
 
               <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 space-y-3">
                 {(() => {
-                  const clientTxs = transactions.filter(tx => tx.clientName === detailModalClient.name || tx.clientName === detailModalClient.bandOrArtistName);
+                  const clientTxsAll = transactions.filter(tx => tx.clientName === detailModalClient.name || tx.clientName === detailModalClient.bandOrArtistName);
+                  const clientTxs = Array.from(new Map(clientTxsAll.map(tx => [tx.bookingId || tx.id, tx])).values());
                   if (clientTxs.length === 0) {
                     return <p className="text-xs text-zinc-500 italic py-2">{t('client_detail_no_financial_history')}</p>;
                   }
 
+                  const total = clientTxs.reduce((s, tx) => s + (Number(tx.amount) || 0), 0);
+
                   return (
-                    <div className="space-y-2">
-                      {clientTxs.map(tx => (
-                        <div key={tx.id} className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-bold text-white block">{tx.serviceName}</span>
-                            <span className="text-[10px] text-zinc-400">{formatDateBR(tx.confirmedAt)} • Forma: {tx.paymentMethod}</span>
+                    <>
+                      <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3">
+                        <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                          {t('client_detail_financial_entries_total')}
+                        </span>
+                        <span className="text-xl font-black text-emerald-400">
+                          {formatBRL(total)}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {clientTxs.map(tx => (
+                          <div key={tx.id} className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
+                            <div>
+                              <span className="font-bold text-white block">{tx.serviceName}</span>
+                              <span className="text-[10px] text-zinc-400">{formatDateBR(tx.confirmedAt)} • Forma: {tx.paymentMethod}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-black text-[#00FF41] block">{formatBRL(tx.amount)}</span>
+                              <span className="text-[9px] uppercase font-bold text-emerald-400">{t('client_detail_pix_confirmed')}</span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className="font-black text-[#00FF41] block">{formatBRL(tx.amount)}</span>
-                            <span className="text-[9px] uppercase font-bold text-emerald-400">{t('client_detail_pix_confirmed')}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    </>
                   );
                 })()}
               </div>

@@ -725,7 +725,7 @@ function AppContent() {
           try {
             const { booking, transaction, confirmMsg, financials: updatedFinancials } = JSON.parse(e.data);
             setBookings((prev) => prev.map((b) => (b.id === booking.id ? booking : b)));
-            if (transaction) setTransactions((prev) => [transaction, ...prev.filter((t) => t.id !== transaction.id)]);
+            if (transaction) setTransactions((prev) => [transaction, ...prev.filter((t) => t.id !== transaction.id && t.bookingId !== transaction.bookingId)]);
             if (confirmMsg) setChatMessages((prev) => [...prev.filter((m) => m.id !== confirmMsg.id), confirmMsg]);
             if (updatedFinancials) setFinancials(updatedFinancials);
           } catch (err) {
@@ -825,7 +825,7 @@ function AppContent() {
               setBookings((prev) => prev.map((b) => (b.id === booking.id ? booking : b)));
             }
             if (transaction) {
-              setTransactions((prev) => [transaction, ...prev.filter((t) => t.id !== transaction.id)]);
+              setTransactions((prev) => [transaction, ...prev.filter((t) => t.id !== transaction.id && t.bookingId !== transaction.bookingId)]);
             }
             if (updatedFinancials) {
               setFinancials(updatedFinancials);
@@ -1269,7 +1269,7 @@ function AppContent() {
         setBookings((prev) => prev.map((b) => (b.id === data.booking.id ? data.booking : b)));
       }
       if (data.transaction) {
-        setTransactions((prev) => [data.transaction, ...prev.filter((t) => t.id !== data.transaction.id)]);
+        setTransactions((prev) => [data.transaction, ...prev.filter((t) => t.id !== data.transaction.id && t.bookingId !== data.transaction.bookingId)]);
       }
       if (data.financials) {
         setFinancials(data.financials);

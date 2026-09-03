@@ -945,6 +945,7 @@ export interface Translations {
   client_detail_table_header_value: string;
   client_detail_no_services_registered: string;
   client_detail_section_financial_entries: string;
+  client_detail_financial_entries_total: string;
   client_detail_no_financial_history: string;
   client_detail_pix_confirmed: string;
   client_detail_open_communication_chat: string;
@@ -1972,6 +1973,7 @@ export const translations: Record<Language, Translations> = {
     client_detail_table_header_value: 'Valor',
     client_detail_no_services_registered: 'Nenhum serviço registrado',
     client_detail_section_financial_entries: 'Entradas Financeiras (Pix)',
+    client_detail_financial_entries_total: 'Total Recebido (Pix)',
     client_detail_no_financial_history: 'Nenhum histórico financeiro',
     client_detail_pix_confirmed: 'Pix confirmado',
     client_detail_open_communication_chat: 'Abrir canal de comunicação (chat)',
@@ -2997,6 +2999,7 @@ export const translations: Record<Language, Translations> = {
     client_detail_table_header_value: 'Value',
     client_detail_no_services_registered: 'No services registered',
     client_detail_section_financial_entries: 'Financial Entries (Pix)',
+    client_detail_financial_entries_total: 'Total Received (Pix)',
     client_detail_no_financial_history: 'No financial history',
     client_detail_pix_confirmed: 'Pix confirmed',
     client_detail_open_communication_chat: 'Open communication channel (chat)',

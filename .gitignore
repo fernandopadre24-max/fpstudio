@@ -13,3 +13,7 @@ scripts/iniciar-fpstudio-cliente.bat
 *.db-journal
 *.db-wal
 *.db-shm
+
+# Orkestra AI — estado local (nunca versionar)
+.sta/
+.orkestra/

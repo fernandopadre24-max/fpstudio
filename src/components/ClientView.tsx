@@ -49,6 +49,7 @@ import {
   Loader2,
   Check,
   Download,
+  TrendingUp,
 } from 'lucide-react';
 import { MapModal } from './MapModal';
 import {
@@ -2052,6 +2053,39 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
               </button>
             </div>
 
+            {clientBookings.length > 0 && (
+              <div className="bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/60 rounded-2xl p-5 shadow-lg">
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Total dos Pedidos
+                      </span>
+                      <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                        {formatBRL(clientBookings.reduce((sum, b) => sum + (b.finalAmount || 0), 0))}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-slate-500" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {clientBookings.length} pedido{clientBookings.length === 1 ? '' : 's'}
+                      </span>
+                      <span className="text-2xl font-black text-slate-900 dark:text-white">
+                        {clientBookings.filter((b) => b.status === 'pago_confirmado').length} pago
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {clientBookings.length === 0 ? (
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-4">
                 <Music2 className="w-12 h-12 text-slate-400 mx-auto" />
@@ -2198,42 +2232,50 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
 
         {/* ================= TAB 3: CHAT EM TEMPO REAL COM O ESTÚDIO ================= */}
         {activeTab === 'chat' && (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[580px]">
+          <div className="fixed top-16 right-4 sm:right-5 z-40 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden w-[420px] max-w-[calc(100vw-2rem)] h-[calc(100dvh-6rem)]">
             
-            {/* Left Chat Sidebar: List of Active Sessions */}
-            <div className="md:col-span-4 border-r border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-4 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
-                Minhas Conversas com o Estúdio
-              </h3>
+            {/* Compact Session Selector */}
+            <div className="shrink-0 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
+                  Minhas Conversas com o Estúdio
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('bookings')}
+                  className="px-2 py-1 rounded-lg text-zinc-500 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-zinc-700 transition cursor-pointer flex items-center gap-1"
+                  title="Fechar chat"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
 
-              <div className="space-y-2">
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {clientBookings.map((b) => {
                   const isActive = b.id === selectedChatBooking?.id;
                   return (
-                    <div
+                    <button
                       key={b.id}
+                      type="button"
                       onClick={() => setActiveBookingIdForChat(b.id)}
-                      className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+                      className={`shrink-0 px-3 py-2 rounded-xl border cursor-pointer transition text-left ${
                         isActive
                           ? 'bg-slate-900 text-white border-emerald-500 shadow-md'
                           : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                       }`}
                     >
-                      <div>
-                        <p className="font-bold text-xs">{b.serviceName}</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
-                          {formatDateBR(b.preferredDate)} • FPStudio
-                        </p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </div>
+                      <p className="font-bold text-[11px] whitespace-nowrap">{b.serviceName}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
+                        {formatDateBR(b.preferredDate)}
+                      </p>
+                    </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Right Main Chat Window */}
-            <div className="md:col-span-8 flex flex-col justify-between h-[580px] bg-slate-900 text-white">
+            {/* Main Chat Window */}
+            <div className="flex-1 flex flex-col justify-between min-h-0 bg-slate-900 text-white">
               
               {/* Chat Header */}
               {selectedChatBooking ? (
@@ -2553,7 +2595,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                   </form>
                 </>
               ) : (
-                <div className="flex items-center justify-center h-full text-slate-500 text-xs">
+                <div className="flex-1 flex items-center justify-center text-slate-500 text-xs">
                   {t('chat_no_session_selected')}
                 </div>
               )}
