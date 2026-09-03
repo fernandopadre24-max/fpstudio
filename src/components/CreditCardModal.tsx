@@ -343,7 +343,12 @@ export const CreditCardModal: React.FC<CreditCardModalProps> = ({ booking, onClo
             {/* Security Notice */}
             <div className="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl flex items-start gap-2.5 text-[11px] text-slate-500 dark:text-slate-400">
               <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-              <p>{t('credit_card_secure_notice')} — {t('credit_card_supported_brands')}: Visa, Mastercard, Elo, Amex, Discover, Diners, JCB, Hiper</p>
+              <div className="space-y-1">
+                <p>{t('credit_card_secure_notice')} — {t('credit_card_supported_brands')}: Visa, Mastercard, Elo, Amex, Discover, Diners, JCB, Hiper</p>
+                <p className="font-semibold text-slate-600 dark:text-slate-300">
+                  Conta: 4685093-0 • Banco: 0260 (Nubank) • AG: 0001
+                </p>
+              </div>
             </div>
 
           </div>

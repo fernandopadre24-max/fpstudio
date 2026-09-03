@@ -24,6 +24,12 @@ export const INITIAL_STUDIO_INFO = {
   phone: "(71) 9 8118-4589",
   whatsapp: "5571981184589",
   email: "fpstudio2027@gmail.com",
+  creditCardAccount: {
+    bank: "0260",
+    bankName: "Nubank",
+    agency: "0001",
+    account: "4685093-0",
+  },
 };
 
 export const INITIAL_ROOMS: StudioRoom[] = [
