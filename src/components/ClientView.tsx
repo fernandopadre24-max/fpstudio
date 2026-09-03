@@ -22,6 +22,7 @@ import {
   Upload,
   Copy,
   Sparkles,
+  ChevronLeft,
   ChevronRight,
   ShieldCheck,
   MapPin,
@@ -218,6 +219,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const audioInputRef = React.useRef<HTMLInputElement>(null);
   const chatEndRef = React.useRef<HTMLDivElement>(null);
+  const chatSessionListRef = React.useRef<HTMLDivElement>(null);
 
   const handleChatFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2250,27 +2252,50 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                 </button>
               </div>
 
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {clientBookings.map((b) => {
-                  const isActive = b.id === selectedChatBooking?.id;
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={() => setActiveBookingIdForChat(b.id)}
-                      className={`shrink-0 px-3 py-2 rounded-xl border cursor-pointer transition text-left ${
-                        isActive
-                          ? 'bg-slate-900 text-white border-emerald-500 shadow-md'
-                          : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                      }`}
-                    >
-                      <p className="font-bold text-[11px] whitespace-nowrap">{b.serviceName}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
-                        {formatDateBR(b.preferredDate)}
-                      </p>
-                    </button>
-                  );
-                })}
+              <div className="relative flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => chatSessionListRef.current?.scrollBy({ left: -190, behavior: 'smooth' })}
+                  className="shrink-0 w-7 h-7 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#00FF41] hover:border-[#00FF41]/50 flex items-center justify-center transition cursor-pointer"
+                  title="Conversas anteriores"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <div
+                  ref={chatSessionListRef}
+                  className="flex gap-2 overflow-x-auto pb-1 no-scrollbar flex-1"
+                >
+                  {clientBookings.map((b) => {
+                    const isActive = b.id === selectedChatBooking?.id;
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => setActiveBookingIdForChat(b.id)}
+                        className={`shrink-0 px-3 py-2 rounded-xl border cursor-pointer transition text-left ${
+                          isActive
+                            ? 'bg-slate-900 text-white border-emerald-500 shadow-md'
+                            : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                        }`}
+                      >
+                        <p className="font-bold text-[11px] whitespace-nowrap">{b.serviceName}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">
+                          {formatDateBR(b.preferredDate)}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => chatSessionListRef.current?.scrollBy({ left: 190, behavior: 'smooth' })}
+                  className="shrink-0 w-7 h-7 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-[#00FF41] hover:border-[#00FF41]/50 flex items-center justify-center transition cursor-pointer"
+                  title="Próximas conversas"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
@@ -3348,15 +3373,17 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
       )}
 
       {/* Sticky Floating Chat Button matching user screenshot */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setActiveTab('chat')}
-          className="px-5 py-3 rounded-full bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs shadow-[0_0_25px_rgba(0,255,65,0.5)] hover:scale-105 transition flex items-center gap-2 cursor-pointer"
-        >
-          <span className="w-2 h-2 rounded-full bg-black animate-ping" />
-          <span>🟢 CHAT COM O ESTÚDIO</span>
-        </button>
-      </div>
+      {activeTab !== 'chat' && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            onClick={() => setActiveTab('chat')}
+            className="px-5 py-3 rounded-full bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs shadow-[0_0_25px_rgba(0,255,65,0.5)] hover:scale-105 transition flex items-center gap-2 cursor-pointer"
+          >
+            <span className="w-2 h-2 rounded-full bg-black animate-ping" />
+            <span>🟢 CHAT COM O ESTÚDIO</span>
+          </button>
+        </div>
+      )}
 
       {/* Lightbox Modal for Receipts & Attachments */}
       {lightboxAttachment && (
