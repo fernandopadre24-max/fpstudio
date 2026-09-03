@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
+import { useCustomization } from '../context/CustomizationContext';
 import {
   DollarSign,
   TrendingUp,
@@ -163,6 +164,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
   onOpenAdminSecurityModal,
   onUpdateAdminCredentials,
 }) => {
+  const { t } = useCustomization();
   // Chat & Quote State
   const [selectedBookingId, setSelectedBookingId] = useState<string>((bookings || [])[0]?.id || '');
   const [chatInputText, setChatInputText] = useState<string>('');
@@ -2367,24 +2369,24 @@ export const StudioView: React.FC<StudioViewProps> = ({
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-zinc-900 text-zinc-500 border border-zinc-800 rounded text-xs">
-                        Sem PIN (Acesso Livre)
+                        {t('client_detail_no_pin_free_access')}
                       </span>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">RG / Documento</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">{t('client_detail_label_rg_document')}</span>
                   <span className="font-bold text-zinc-200">{detailModalClient.rg || 'Não informado'}</span>
                 </div>
 
                 <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">E-mail de Contato</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">{t('client_detail_label_contact_email')}</span>
                   <span className="font-mono text-zinc-300">{detailModalClient.email}</span>
                 </div>
 
                 <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">Telefone / WhatsApp</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">{t('client_detail_label_phone_whatsapp')}</span>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="font-bold text-zinc-200">{detailModalClient.phone || '(71) 99999-0000'}</span>
                     <a
@@ -2393,27 +2395,27 @@ export const StudioView: React.FC<StudioViewProps> = ({
                       rel="noopener noreferrer"
                       className="px-2 py-0.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[10px] font-bold rounded flex items-center gap-1 border border-emerald-500/30"
                     >
-                      <Phone className="w-2.5 h-2.5" /> WhatsApp
+                      <Phone className="w-2.5 h-2.5" /> {t('client_detail_whatsapp')}
                     </a>
                   </div>
                 </div>
 
                 <div className="md:col-span-2">
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">Endereço de Faturamento</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">{t('client_detail_label_billing_address')}</span>
                   <span className="text-zinc-200">
                     {detailModalClient.address ? `${detailModalClient.address}, ${detailModalClient.city || 'Salvador/BA'} - CEP: ${detailModalClient.cep || ''}` : 'Endereço não cadastrado'}
                   </span>
                 </div>
 
                 <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">Instagram / Rede Social</span>
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">{t('client_detail_label_instagram')}</span>
                   <span className="text-[#00FF41] font-bold">{detailModalClient.instagram || '@estudio_cliente'}</span>
                 </div>
               </div>
 
               {detailModalClient.notes && (
                 <div className="bg-zinc-900/60 border border-zinc-800 p-3 rounded-xl text-xs space-y-1">
-                  <span className="text-[10px] font-bold text-amber-400 uppercase">Observações Técnicas / Preferências de Gravação:</span>
+                  <span className="text-[10px] font-bold text-amber-400 uppercase">{t('client_detail_section_technical_notes')}:</span>
                   <p className="text-zinc-300 italic">{detailModalClient.notes}</p>
                 </div>
               )}
@@ -2423,13 +2425,13 @@ export const StudioView: React.FC<StudioViewProps> = ({
             <div className="space-y-3 pt-2 border-t border-zinc-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[#00FF41] font-black text-xs uppercase tracking-wider">
-                  <FileText className="w-4 h-4" /> 2. Histórico de Serviços Solicitados & Agendamentos
+                  <FileText className="w-4 h-4" /> 2. {t('client_detail_section_service_history')}
                 </div>
                 {(() => {
                   const clientBookings = bookings.filter(b => b.clientId === detailModalClient.id || b.clientName === detailModalClient.name);
                   return (
                     <span className="text-xs font-bold text-zinc-400">
-                      Total: <span className="text-[#00FF41]">{clientBookings.length}</span> {clientBookings.length === 1 ? 'pedido' : 'pedidos'}
+                      Total: <span className="text-[#00FF41]">{clientBookings.length}</span> {clientBookings.length === 1 ? t('clients_order_singular') : t('clients_order_plural')}
                     </span>
                   );
                 })()}
@@ -2440,13 +2442,13 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   <table className="w-full text-left text-xs">
                     <thead>
                       <tr className="bg-zinc-950 border-b border-zinc-800 text-zinc-400 uppercase font-bold text-[10px]">
-                        <th className="py-2.5 px-3">Data / Hora</th>
-                        <th className="py-2.5 px-3">Serviço Solicitado</th>
-                        <th className="py-2.5 px-3">Sala</th>
-                        <th className="py-2.5 px-3">Duração</th>
-                        <th className="py-2.5 px-3">Instrumentos</th>
-                        <th className="py-2.5 px-3">Status</th>
-                        <th className="py-2.5 px-3 text-right">Valor</th>
+                        <th className="py-2.5 px-3">{t('client_detail_table_header_datetime')}</th>
+                        <th className="py-2.5 px-3">{t('client_detail_table_header_service_requested')}</th>
+                        <th className="py-2.5 px-3">{t('client_detail_table_header_room')}</th>
+                        <th className="py-2.5 px-3">{t('client_detail_table_header_duration')}</th>
+                        <th className="py-2.5 px-3">{t('client_detail_table_header_instruments')}</th>
+                        <th className="py-2.5 px-3">{t('client_detail_table_header_status')}</th>
+                        <th className="py-2.5 px-3 text-right">{t('client_detail_table_header_value')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800">
@@ -2456,7 +2458,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                           return (
                             <tr>
                               <td colSpan={7} className="py-6 text-center text-zinc-500 italic">
-                                Nenhum serviço ou agendamento registrado para este cliente ainda.
+                                {t('client_detail_no_services_registered')}
                               </td>
                             </tr>
                           );
@@ -2483,7 +2485,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                                   : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                               }`}>
-                                {b.status === 'pago_confirmado' ? 'PAGO / CONFIRMADO' : 'AGUARDANDO PIX'}
+                                {b.status === 'pago_confirmado' ? t('client_profile_status_paid_confirmed') : t('client_profile_status_waiting_pix')}
                               </span>
                             </td>
                             <td className="py-3 px-3 text-right font-black text-white">
@@ -2501,14 +2503,14 @@ export const StudioView: React.FC<StudioViewProps> = ({
             {/* Grid Section 3: Histórico de Pagamentos PIX */}
             <div className="space-y-3 pt-2 border-t border-zinc-800">
               <div className="flex items-center gap-2 text-[#00FF41] font-black text-xs uppercase tracking-wider">
-                <CreditCard className="w-4 h-4" /> 3. Entradas Financeiras & Pagamentos PIX Confirmados
+                <CreditCard className="w-4 h-4" /> 3. {t('client_detail_section_financial_entries')}
               </div>
 
               <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 space-y-3">
                 {(() => {
                   const clientTxs = transactions.filter(tx => tx.clientName === detailModalClient.name || tx.clientName === detailModalClient.bandOrArtistName);
                   if (clientTxs.length === 0) {
-                    return <p className="text-xs text-zinc-500 italic py-2">Sem histórico de transações financeiras arquivadas.</p>;
+                    return <p className="text-xs text-zinc-500 italic py-2">{t('client_detail_no_financial_history')}</p>;
                   }
 
                   return (
@@ -2521,7 +2523,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                           </div>
                           <div className="text-right">
                             <span className="font-black text-[#00FF41] block">{formatBRL(tx.amount)}</span>
-                            <span className="text-[9px] uppercase font-bold text-emerald-400">PIX Confirmado</span>
+                            <span className="text-[9px] uppercase font-bold text-emerald-400">{t('client_detail_pix_confirmed')}</span>
                           </div>
                         </div>
                       ))}
@@ -2545,14 +2547,14 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   }}
                   className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs rounded-xl border border-zinc-800 transition flex items-center gap-2 cursor-pointer"
                 >
-                  <MessageSquare className="w-4 h-4 text-[#00FF41]" /> Abrir Chat de Comunicação
+                  <MessageSquare className="w-4 h-4 text-[#00FF41]" /> {t('client_detail_open_communication_chat')}
                 </button>
 
                 <button
                   onClick={() => setClientToDelete(detailModalClient)}
                   className="px-4 py-2.5 bg-rose-950/80 hover:bg-rose-700 text-rose-300 hover:text-white font-bold text-xs rounded-xl border border-rose-800/80 transition flex items-center gap-2 cursor-pointer"
                 >
-                  <Trash2 className="w-4 h-4 text-rose-400" /> Excluir Cliente
+                  <Trash2 className="w-4 h-4 text-rose-400" /> {t('client_detail_delete_client')}
                 </button>
               </div>
 
@@ -2560,7 +2562,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 onClick={() => setDetailModalClient(null)}
                 className="px-6 py-2.5 bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs rounded-xl shadow-[0_0_15px_rgba(0,255,65,0.3)] transition cursor-pointer"
               >
-                FECHAR FICHA DO CLIENTE
+                {t('client_detail_close_client_profile')}
               </button>
             </div>
 
@@ -2577,8 +2579,8 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-black text-lg text-white">Excluir Cliente?</h3>
-                <p className="text-xs text-zinc-400">Esta ação removerá o cadastro do sistema FPStudio.</p>
+                <h3 className="font-black text-lg text-white">{t('delete_client_modal_title')}?</h3>
+                <p className="text-xs text-zinc-400">{t('delete_client_modal_description')}</p>
               </div>
             </div>
 
@@ -2600,7 +2602,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
             </div>
 
             <p className="text-xs text-rose-400 bg-rose-950/40 border border-rose-900/50 p-3 rounded-xl">
-              ⚠️ Tem certeza que deseja excluir permanentemente este cliente do cadastro?
+              ⚠️ {t('delete_client_modal_confirmation')}
             </p>
 
             <div className="flex items-center justify-end gap-2 pt-2">
@@ -2608,7 +2610,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 onClick={() => setClientToDelete(null)}
                 className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer"
               >
-                Cancelar
+                {t('delete_client_modal_cancel')}
               </button>
               <button
                 onClick={() => {
@@ -2622,7 +2624,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 }}
                 className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer"
               >
-                <Trash2 className="w-4 h-4" /> Confirmar Exclusão
+                <Trash2 className="w-4 h-4" /> {t('delete_client_modal_confirm_delete')}
               </button>
             </div>
           </div>
@@ -2641,14 +2643,14 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 <div>
                   <h3 className="font-black text-lg text-white">
                     {undoPeriod === 'yesterday'
-                      ? 'Retroceder Pedidos de Ontem'
+                      ? t('undo_modal_title_rollback_yesterday')
                       : undoPeriod === 'today'
-                      ? 'Desfazer Pedidos de Hoje'
+                      ? t('undo_modal_title_undo_today')
                       : undoPeriod === 'recent'
-                      ? 'Desfazer Pedidos Recentes (48h)'
-                      : 'Restaurar Estado Anterior'}
+                      ? t('undo_modal_title_undo_recent')
+                      : t('undo_modal_title_restore_previous')}
                   </h3>
-                  <p className="text-xs text-slate-400">Cancelamento e limpeza com recálculo financeiro</p>
+                  <p className="text-xs text-slate-400">{t('undo_modal_subtitle')}</p>
                 </div>
               </div>
               <button
@@ -2662,10 +2664,10 @@ export const StudioView: React.FC<StudioViewProps> = ({
             {/* Period Switcher Tabs */}
             <div className="grid grid-cols-4 gap-1.5 p-1 bg-slate-900 rounded-2xl border border-slate-800 text-center text-xs">
               {[
-                { id: 'yesterday', label: 'Ontem' },
-                { id: 'today', label: 'Hoje' },
-                { id: 'recent', label: 'Últimas 48h' },
-                { id: 'all', label: 'Todos' },
+                { id: 'yesterday', label: t('undo_modal_tab_yesterday') },
+                { id: 'today', label: t('undo_modal_tab_today') },
+                { id: 'recent', label: t('undo_modal_tab_last_48h') },
+                { id: 'all', label: t('undo_modal_tab_all') },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -2701,12 +2703,12 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 <div className="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-2 text-xs">
                   <p className="text-slate-300 font-semibold">
                     {undoPeriod === 'yesterday'
-                      ? 'Você está selecionando todos os pedidos criados ou agendados para ontem.'
+                      ? t('undo_modal_desc_yesterday')
                       : undoPeriod === 'today'
-                      ? 'Você está selecionando todos os pedidos criados ou agendados para hoje.'
+                      ? t('undo_modal_desc_today')
                       : undoPeriod === 'recent'
-                      ? 'Você está selecionando todos os pedidos dos últimos 2 dias (ontem e hoje).'
-                      : 'Você está selecionando todos os pedidos da base para restaurar o estado limpo original.'}
+                      ? t('undo_modal_desc_recent')
+                      : t('undo_modal_desc_all')}
                   </p>
                   <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1 text-slate-400">
                     <div className="flex items-center justify-between">
@@ -2733,7 +2735,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
             })()}
 
             <div className="space-y-2">
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Escolha a ação desejada:</p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{t('undo_modal_choose_action')}:</p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
@@ -2752,7 +2754,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   className="p-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 rounded-2xl text-left space-y-1 transition group cursor-pointer"
                 >
                   <span className="text-xs font-black text-amber-400 block group-hover:text-amber-300">
-                    Marcar como Cancelados
+                    {t('undo_modal_action_mark_cancelled')}
                   </span>
                   <span className="text-[11px] text-slate-400 block leading-tight">
                     Mantém o registro com status "Cancelado" e reajusta métricas financeiras.
@@ -2775,7 +2777,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   className="p-3.5 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/60 hover:border-rose-500 rounded-2xl text-left space-y-1 transition group cursor-pointer"
                 >
                   <span className="text-xs font-black text-rose-400 block group-hover:text-rose-300">
-                    Excluir Permanentemente
+                    {t('undo_modal_action_delete_permanently')}
                   </span>
                   <span className="text-[11px] text-slate-400 block leading-tight">
                     Remove da base e restaura o painel exatamente como estava antes.
@@ -2789,7 +2791,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 onClick={() => setShowConfirmUndoModal(false)}
                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer"
               >
-                Voltar / Fechar
+                {t('undo_modal_back_close')}
               </button>
             </div>
           </div>
@@ -2807,8 +2809,8 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg text-white">Cadastrar Novo Usuário</h3>
-                  <p className="text-xs text-zinc-400">Adicione um novo cliente, banda ou artista ao sistema.</p>
+                  <h3 className="font-black text-lg text-white">{t('create_user_modal_title')}</h3>
+                  <p className="text-xs text-zinc-400">{t('create_user_modal_subtitle')}</p>
                 </div>
               </div>
               <button
@@ -2834,11 +2836,11 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 setCreateUserError(null);
 
                 if (!newUserForm.name.trim()) {
-                  setCreateUserError('Por favor, informe o nome completo do responsável.');
+                  setCreateUserError(t('create_user_error_name_required'));
                   return;
                 }
                 if (!newUserForm.email.trim()) {
-                  setCreateUserError('Por favor, informe o e-mail do usuário.');
+                  setCreateUserError(t('create_user_error_email_required'));
                   return;
                 }
 
@@ -2917,7 +2919,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 {/* Nome Completo */}
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
-                    Nome Completo do Responsável <span className="text-[#00FF41]">*</span>
+                    {t('create_user_label_full_name')} <span className="text-[#00FF41]">*</span>
                   </label>
                   <div className="relative">
                     <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -2935,7 +2937,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 {/* Nome Artístico / Banda */}
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
-                    Nome Artístico / Banda / Produtora
+                    {t('create_user_label_stage_name')} / Banda / Produtora
                   </label>
                   <div className="relative">
                     <Music className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -3076,7 +3078,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   onClick={() => setShowCreateUserModal(false)}
                   className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer"
                 >
-                  Cancelar
+                  {t('create_user_cancel_button')}
                 </button>
                 <button
                   type="submit"

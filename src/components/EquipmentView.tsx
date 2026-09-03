@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useCustomization } from '../context/CustomizationContext';
 import {
   Sliders,
   Search,
@@ -64,6 +65,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
   onCreateEquipment,
   onDeleteEquipment,
 }) => {
+  const { t } = useCustomization();
   const [viewSection, setViewSection] = useState<'all' | 'services' | 'equipment'>(defaultSection);
 
   useEffect(() => {
@@ -735,13 +737,13 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#00FF41]/15 text-[#00FF41] border border-[#00FF41]/40 text-xs font-black uppercase tracking-wider">
               <Music2 className="w-4 h-4 text-[#00FF41]" />
-              TABELA OFICIAL DE SERVIÇOS FPSTUDIO
+              {t('badge_tabela_oficial_servicos')}
             </div>
 
             {currentRole === 'studio' && (
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-xs font-black uppercase tracking-wider">
                 <Edit2 className="w-4 h-4 text-indigo-300" />
-                MODO DE EDIÇÃO DE PREÇOS E FOTOS ATIVO
+                {t('badge_modulo_edicao_ativo')}
               </div>
             )}
           </div>
@@ -749,13 +751,13 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight uppercase leading-none">
-                SERVIÇOS OFERECIDOS & VALORES
+                {t('heading_servicos_oferedos_valores')}
               </h2>
               <p className="text-zinc-400 text-xs sm:text-sm mt-2 max-w-3xl leading-relaxed">
-                Lista de produções, gravações autorais, edições de áudio e vinhetas com valores, fotos e especificações completas. 
+                {t('subheading_servicos_lista_desc')}
                 {currentRole === 'studio' && (
                   <span className="text-[#00FF41] font-bold block mt-1">
-                    Como Administrador, você pode alterar os valores em R$ e imagens de cada serviço a qualquer momento.
+                    {t('subheading_servicos_admin_desc')}
                   </span>
                 )}
               </p>
@@ -779,7 +781,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 }}
                 className="px-5 py-3 bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs rounded-xl shadow-[0_0_20px_rgba(0,255,65,0.4)] hover:scale-105 transition flex items-center gap-2 cursor-pointer shrink-0"
               >
-                <Plus className="w-4 h-4" /> NOVO SERVIÇO / PACOTE
+                <Plus className="w-4 h-4" /> {t('button_novo_servico_pacote')}
               </button>
             )}
           </div>
@@ -809,7 +811,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Pesquisar serviço ou pacote..."
+                  placeholder={t('placeholder_search_servico')}
                 value={serviceSearchQuery}
                 onChange={(e) => setServiceSearchQuery(e.target.value)}
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#00FF41] transition"
@@ -844,7 +846,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2 z-10">
                   <span className="bg-[#00FF41]/20 backdrop-blur-md border border-[#00FF41]/40 text-[#00FF41] text-[10px] font-mono font-black uppercase px-2.5 py-1 rounded-lg shadow-lg flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {service.durationHours}h de estúdio
+                    {service.durationHours}{t('label_horas_estudio')}
                   </span>
 
                   <span className="bg-zinc-950/85 backdrop-blur-md border border-zinc-700 text-zinc-200 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-lg capitalize">
@@ -855,7 +857,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 {/* Floating Price Tag on Bottom Right of Photo */}
                 <div className="absolute bottom-3 right-3 z-10">
                   <div className="px-3.5 py-1.5 rounded-xl bg-black/90 border border-[#00FF41]/60 backdrop-blur-md shadow-xl flex items-center gap-1.5">
-                    <span className="text-[10px] font-black uppercase text-zinc-400">VALOR:</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-400">{t('label_valor')}:</span>
                     <span className="text-sm font-black text-[#00FF41] tracking-tight">
                       {formatBRL(service.basePrice)}
                     </span>
@@ -872,7 +874,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                         setIsServiceModalOpen(true);
                       }}
                       className="p-2 bg-zinc-950/90 hover:bg-[#00FF41] text-zinc-200 hover:text-black rounded-xl border border-zinc-700 transition cursor-pointer shadow-lg"
-                      title="Editar Valores e Foto do Serviço"
+                      title={t('tooltip_editar_valores_foto_servico')}
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -882,7 +884,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                         setServiceToDelete(service);
                       }}
                       className="p-2 bg-rose-950/90 hover:bg-rose-600 text-rose-300 hover:text-white rounded-xl border border-rose-800 transition cursor-pointer shadow-lg"
-                      title="Excluir Serviço"
+                      title={t('tooltip_excluir_servico')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -905,10 +907,10 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
 
                   <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs">
                     <span className="text-zinc-400 font-bold flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-[#00FF41]" /> FPStudio Salvador
+                      <Sparkles className="w-3.5 h-3.5 text-[#00FF41]" /> {t('label_fpstudio_salvador')}
                     </span>
                     <span className="text-[#00FF41] font-mono font-bold text-[11px]">
-                      {service.durationHours}h de sessão
+                      {service.durationHours}{t('label_horas_sessao')}
                     </span>
                   </div>
                 </div>
@@ -924,7 +926,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                       className="w-full py-2.5 bg-zinc-800 hover:bg-[#00FF41] hover:text-black text-zinc-200 font-black text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md border border-zinc-700/60 hover:border-[#00FF41] uppercase tracking-wide"
                     >
                       <Edit2 className="w-4 h-4 text-[#00FF41] group-hover:text-black" />
-                      ALTERAR VALOR & IMAGEM
+                      {t('button_alterar_valor_imagem')}
                     </button>
                   ) : (
                     <div className="flex gap-2">
@@ -932,7 +934,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                         onClick={() => setSelectedServiceDetail(service)}
                         className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer border border-zinc-700"
                       >
-                        <Info className="w-3.5 h-3.5 text-zinc-400" /> Detalhes
+                        <Info className="w-3.5 h-3.5 text-zinc-400" /> {t('button_detalhes')}
                       </button>
 
                       {onNavigateToBooking && (
@@ -940,7 +942,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                           onClick={() => onNavigateToBooking(service.id)}
                           className="flex-1 py-2.5 bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs rounded-xl shadow-[0_0_15px_rgba(0,255,65,0.3)] transition flex items-center justify-center gap-1.5 cursor-pointer uppercase"
                         >
-                          <Calendar className="w-3.5 h-3.5" /> Agendar
+                          <Calendar className="w-3.5 h-3.5" /> {t('button_agendar')}
                         </button>
                       )}
                     </div>
@@ -957,7 +959,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
         {filteredServices.length === 0 && (
           <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-12 text-center space-y-3">
             <Music2 className="w-10 h-10 text-zinc-600 mx-auto" />
-            <h3 className="text-lg font-bold text-white">Nenhum serviço encontrado</h3>
+            <h3 className="text-lg font-bold text-white">{t('empty_servico_nenhum_encontrado')}</h3>
             <p className="text-xs text-zinc-400 max-w-md mx-auto">
               Não encontramos serviços para "{serviceSearchQuery}". Tente outra categoria ou adicione um novo pacote.
             </p>
@@ -968,7 +970,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               }}
               className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl transition cursor-pointer"
             >
-              Limpar Filtros de Serviços
+              {t('button_limpar_filtros_servicos')}
             </button>
           </div>
         )}
@@ -997,7 +999,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30 text-[10px] font-bold uppercase flex items-center gap-1.5">
                     <Sliders className="w-3 h-3 text-[#00FF41]" />
-                    {selectedItem.price !== undefined && selectedItem.price > 0 ? `VALOR: ${formatBRL(selectedItem.price)}` : 'INCLUSO NA SESSÃO'}
+                    {selectedItem.price !== undefined && selectedItem.price > 0 ? `${t('label_valor')}: ${formatBRL(selectedItem.price)}` : t('label_incluso_na_sessao')}
                   </span>
                 </div>
                 <h2 className="text-xl font-black text-white uppercase mt-1">
@@ -1032,7 +1034,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 className="absolute bottom-3 right-3 px-3 py-1.5 rounded-xl bg-black/80 hover:bg-black text-white text-xs font-bold border border-zinc-700 flex items-center gap-1.5 transition cursor-pointer backdrop-blur-md"
               >
                 <ZoomIn className="w-4 h-4 text-[#00FF41]" />
-                {isPhotoZoomed ? 'Reduzir Foto' : 'Ampliar Imagem'}
+                {isPhotoZoomed ? t('button_reduzir_foto') : t('button_ampliar_imagem')}
               </button>
             </div>
 
@@ -1041,16 +1043,16 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Sliders className="w-4 h-4 text-[#00FF41]" />
-                  <h4 className="text-xs font-black text-white uppercase">Uso na Gravação & Edição</h4>
+                  <h4 className="text-xs font-black text-white uppercase">{t('heading_uso_gravacao_edicao')}</h4>
                 </div>
                 <p className="text-[11px] text-zinc-300">
-                  {selectedItem.priceDetails || (selectedItem.price && selectedItem.price > 0 ? 'Gravação multicanal com edição cirúrgica e alinhamento no Pro-Tools inclusos.' : 'Equipamento padrão do estúdio incluso em todas as sessões.')}
+                  {selectedItem.priceDetails || (selectedItem.price && selectedItem.price > 0 ? t('text_descricao_preco_detalhes_2') : t('text_descricao_preco_detalhes_1'))}
                 </p>
               </div>
               <div className="px-3.5 py-1.5 rounded-xl bg-black/90 border border-[#00FF41]/60 text-right shrink-0">
-                <span className="text-[9px] font-black uppercase text-zinc-400 block">VALOR:</span>
+                <span className="text-[9px] font-black uppercase text-zinc-400 block">{t('label_valor')}:</span>
                 <span className="text-base font-black text-[#00FF41]">
-                  {selectedItem.price !== undefined && selectedItem.price > 0 ? formatBRL(selectedItem.price) : 'INCLUSO'}
+                  {selectedItem.price !== undefined && selectedItem.price > 0 ? formatBRL(selectedItem.price) : t('status_included')}
                 </span>
               </div>
             </div>
@@ -1059,7 +1061,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
             <div className="space-y-4 text-xs">
               <div>
                 <h4 className="font-black text-zinc-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <Cpu className="w-4 h-4 text-[#00FF41]" /> Descrição & Aplicação no FPStudio
+                  <Cpu className="w-4 h-4 text-[#00FF41]" /> {t('heading_descricao_aplicacao_fpstudio')}
                 </h4>
                 <p className="text-zinc-300 leading-relaxed bg-zinc-900/60 p-3.5 rounded-2xl border border-zinc-800/80">
                   {selectedItem.description}
@@ -1069,7 +1071,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               {selectedItem.fullSpecs && selectedItem.fullSpecs.length > 0 && (
                 <div>
                   <h4 className="font-black text-zinc-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Check className="w-4 h-4 text-[#00FF41]" /> Especificações Técnicas & Recursos
+                    <Check className="w-4 h-4 text-[#00FF41]" /> {t('heading_specifications_tech')}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedItem.fullSpecs.map((spec, idx) => (
@@ -1089,7 +1091,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
             {/* Footer Buttons */}
             <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
               <span className="text-[11px] text-zinc-500">
-                Acervo e Instrumentos • FPStudio Salvador
+                {t('label_acervo_instrumentos_fpstudio')}
               </span>
 
               <div className="flex items-center gap-2">
@@ -1097,7 +1099,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                   onClick={() => setSelectedItem(null)}
                   className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl transition cursor-pointer"
                 >
-                  Fechar
+                  {t('button_fechar')}
                 </button>
               </div>
             </div>
@@ -1112,7 +1114,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
           <div className="bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-5 my-8 text-white max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="font-black text-lg text-white">
-                {editingItem.id ? 'Editar Item do Acervo & Valores' : 'Adicionar Novo Item ao Acervo'}
+                {editingItem.id ? t('modal_editar_item_acervo') : t('modal_adicionar_novo_item_acervo')}
               </h3>
               <button
                 onClick={() => {
@@ -1127,38 +1129,38 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
 
             <form onSubmit={handleSaveItem} className="space-y-4 text-xs">
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">Título do Instrumento / Equipamento</label>
+                <label className="block text-zinc-400 font-bold mb-1">{t('label_titulo_instrumento_equipamento')}</label>
                 <input
                   type="text"
                   required
                   value={editingItem.title || ''}
                   onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                  placeholder="Ex: GUITARRAS ELÉTRICAS (IBANEZ STEVE VAI)"
+                  placeholder={t('placeholder_ex_guitarras_eletricas')}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#00FF41]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 font-bold mb-1">Tag Categoria</label>
+                  <label className="block text-zinc-400 font-bold mb-1">{t('label_tag_categoria')}</label>
                   <input
                     type="text"
                     required
                     value={editingItem.categoryTag || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, categoryTag: e.target.value })}
-                    placeholder="Ex: CORDAS"
+                    placeholder={t('placeholder_ex_cordas')}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#00FF41]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-zinc-400 font-bold mb-1">Tag Modelo/Verd</label>
+                  <label className="block text-zinc-400 font-bold mb-1">{t('label_tag_modelo_verd')}</label>
                   <input
                     type="text"
                     required
                     value={editingItem.modelTag || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, modelTag: e.target.value })}
-                    placeholder="Ex: IBANEZ STEVE VAI"
+                    placeholder={t('placeholder_ex_ibanez')}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#00FF41]"
                   />
                 </div>
@@ -1167,7 +1169,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               {/* Pricing & Edition fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-400 font-bold mb-1">Valor para Gravação (R$)</label>
+                  <label className="block text-zinc-400 font-bold mb-1">{t('label_valor_gravacao')}</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-bold">R$</span>
                     <input
@@ -1176,20 +1178,20 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                       step="5"
                       value={editingItem.price !== undefined ? editingItem.price : 0}
                       onChange={(e) => setEditingItem({ ...editingItem, price: parseFloat(e.target.value) || 0 })}
-                      placeholder="0 para Incluso"
+                      placeholder={t('placeholder_zero_para_incluso')}
                       className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-white focus:outline-none focus:border-[#00FF41]"
                     />
                   </div>
-                  <span className="text-[10px] text-zinc-500 mt-0.5 block">0 = Incluso na sessão</span>
+                  <span className="text-[10px] text-zinc-500 mt-0.5 block">{t('text_zero_incluso_sessao')}</span>
                 </div>
 
                 <div>
-                  <label className="block text-zinc-400 font-bold mb-1">Detalhes de Edição & Gravação</label>
+                  <label className="block text-zinc-400 font-bold mb-1">{t('label_detalhes_edicao_gravacao')}</label>
                   <input
                     type="text"
                     value={editingItem.priceDetails || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, priceDetails: e.target.value })}
-                    placeholder="Ex: Gravação + Edição e Alinhamento"
+                    placeholder={t('placeholder_ex_gravacao_edicao')}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#00FF41]"
                   />
                 </div>
@@ -1199,7 +1201,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               <div className="space-y-3 pt-2 border-t border-zinc-800">
                 <div className="flex items-center justify-between">
                   <label className="text-zinc-300 font-bold text-xs">
-                    Foto do Equipamento / Instrumento:
+                    {t('label_foto_equipamento_instrumento')}:
                   </label>
                   <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
                     <button
@@ -1211,7 +1213,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
-                      💻 Do seu PC / Celular
+                      💻 {t('tab_do_seu_pc_celular')}
                     </button>
                     <button
                       type="button"
@@ -1222,7 +1224,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                           : 'text-zinc-400 hover:text-white'
                       }`}
                     >
-                      🌐 Link Web (Opcional)
+                      🌐 {t('tab_link_web_opcional')}
                     </button>
                   </div>
                 </div>
@@ -1238,21 +1240,21 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-3">
                       <span className="text-[11px] font-bold text-[#00FF41] bg-black/70 px-2.5 py-1 rounded-lg border border-[#00FF41]/40 backdrop-blur-sm flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5" /> Foto Carregada
+                        <Check className="w-3.5 h-3.5" /> {t('text_foto_carregada')}
                       </span>
                       <button
                         type="button"
                         onClick={() => setEditingItem({ ...editingItem, imageUrl: '' })}
                         className="text-[10px] bg-red-600/90 hover:bg-red-600 text-white font-bold px-2.5 py-1 rounded-lg transition shadow cursor-pointer"
                       >
-                        Remover Foto
+                        {t('button_remover_foto')}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="h-28 w-full rounded-2xl bg-zinc-900/50 border border-zinc-800 flex flex-col items-center justify-center text-zinc-500 text-xs">
                     <ImageIcon className="w-7 h-7 mb-1 opacity-40" />
-                    <span>Nenhuma imagem selecionada</span>
+                    <span>{t('text_nenhuma_imagem_selecionada')}</span>
                   </div>
                 )}
 
@@ -1263,10 +1265,10 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                       <Upload className={`w-5 h-5 text-[#00FF41] ${isCompressingEquipImage ? 'animate-bounce' : ''}`} />
                       <span>
                         {isCompressingEquipImage
-                          ? 'OTIMIZANDO E ENVIANDO FOTO AO SERVIDOR...'
+                          ? t('button_otimizando_enviando_foto')
                           : editingItem.imageUrl
-                          ? 'SUBSTITUIR POR OUTRA FOTO DO PC / CELULAR'
-                          : 'ESCOLHER FOTO DO SEU COMPUTADOR OU CELULAR'}
+                          ? t('button_substituir_foto')
+                          : t('button_escolher_foto')}
                       </span>
                       <input
                         type="file"
@@ -1277,7 +1279,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                       />
                     </label>
                     <p className="text-[10px] text-zinc-400 mt-1 text-center">
-                      ✓ A foto é salva diretamente no servidor, sem precisar de nenhum link externo.
+                      {t('text_foto_salva_servidor')}
                     </p>
                   </div>
                 )}
@@ -1286,7 +1288,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 {equipImageTab === 'url' && (
                   <div className="bg-zinc-900/80 p-3 rounded-2xl border border-zinc-800 space-y-1">
                     <span className="text-[11px] text-zinc-300 font-bold block">
-                      Cole a URL da Imagem na Internet (Opcional):
+                      {t('label_cole_url_imagem')}
                     </span>
                     <input
                       type="url"
@@ -1300,13 +1302,13 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-zinc-400 font-bold mb-1">Descrição</label>
+                <label className="block text-zinc-400 font-bold mb-1">{t('label_equip_description')}</label>
                 <textarea
                   rows={3}
                   required
                   value={editingItem.description || ''}
                   onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-                  placeholder="Descrição do equipamento..."
+                  placeholder={t('placeholder_descricao_equipamento')}
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#00FF41]"
                 />
               </div>
@@ -1320,13 +1322,13 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                   }}
                   className="px-4 py-2 bg-zinc-800 text-zinc-300 font-bold rounded-xl cursor-pointer"
                 >
-                  Cancelar
+                  {t('button_cancelar')}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-[#00FF41] hover:bg-[#00e038] text-black font-black rounded-xl shadow-lg transition cursor-pointer"
                 >
-                  Salvar Item no Acervo
+                  {t('button_salvar_item_acervo')}
                 </button>
               </div>
             </form>
@@ -1400,7 +1402,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
 
                 <div className="bg-zinc-900/90 p-3 rounded-2xl border border-zinc-800 space-y-1">
                   <label className="block text-zinc-300 font-bold mb-1 flex items-center gap-1">
-                    <Clock className="w-4 h-4 text-[#00FF41]" /> Duração em Estúdio (Horas):
+                    <Clock className="w-4 h-4 text-[#00FF41]" /> {t('label_duracao_estudio_horas')}:
                   </label>
                   <input
                     type="number"
@@ -1412,7 +1414,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 text-white font-bold text-sm focus:outline-none focus:border-[#00FF41]"
                   />
                   <span className="text-[10px] text-zinc-400">
-                    Tempo estimado de gravação / edição
+                    {t('text_tempo_estimado_gravacao_edicao')}
                   </span>
                 </div>
               </div>
@@ -1420,16 +1422,16 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               {/* Categoria e Sala Padrão */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-zinc-300 font-bold mb-1">Categoria:</label>
+                  <label className="block text-zinc-300 font-bold mb-1">{t('label_categoria')}:</label>
                   <select
                     value={editingService.category || 'gravação'}
                     onChange={(e) => setEditingService({ ...editingService, category: e.target.value as any })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#00FF41]"
                   >
-                    <option value="gravação">Gravação</option>
-                    <option value="produção">Produção Autoral</option>
-                    <option value="mix_master">Mix & Master</option>
-                    <option value="dublagem">Dublagem / Vinheta</option>
+                    <option value="gravação">{t('select_gravacao')}</option>
+                    <option value="produção">{t('label_producao_autoral')}</option>
+                    <option value="mix_master">{t('label_mix_master')}</option>
+                    <option value="dublagem">{t('label_dublagem_vinheta')}</option>
                   </select>
                 </div>
               </div>
@@ -1438,7 +1440,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
               <div className="space-y-3 pt-2 border-t border-zinc-800">
                 <div className="flex items-center justify-between">
                   <label className="text-zinc-200 font-bold text-xs">
-                    Foto de Capa do Serviço:
+                    {t('label_foto_capa_servico')}:
                   </label>
                   <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
                     <button

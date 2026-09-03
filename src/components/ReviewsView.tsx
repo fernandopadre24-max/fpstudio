@@ -46,6 +46,7 @@ import {
 } from 'lucide-react';
 import { ClientReview, StudioService, UserProfile, Role } from '../types';
 import { safeStorage } from '../utils/safeStorage';
+import { useCustomization } from '../context/CustomizationContext';
 
 interface ReviewsViewProps {
   currentRole?: Role;
@@ -76,6 +77,8 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
   onDeleteReview,
   onNavigateToBooking,
 }) => {
+  const { t } = useCustomization();
+
   // Mode detection: either through currentRole or isStudio or quick producer switch
   const isStudioUser = currentRole === 'studio' || isStudio;
   const [producerModeActive, setProducerModeActive] = useState<boolean>(isStudioUser);
@@ -159,7 +162,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
     if (!file) return;
 
     if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp|gif|bmp|heic|svg)$/i)) {
-      setUploadError('Por favor, selecione um arquivo de imagem válido (JPG, PNG, WEBP, GIF).');
+      setUploadError(t('toast_invalid_image_file'));
       return;
     }
 
@@ -171,7 +174,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
 
     const reader = new FileReader();
     reader.onerror = () => {
-      setUploadError('Falha ao ler o arquivo selecionado.');
+      setUploadError(t('toast_failed_read_file'));
       setIsProcessingFile(false);
     };
 
@@ -335,18 +338,18 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
     const reviewPayload: Partial<ClientReview> = {
       id: `rev-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
       clientId: activeClient?.id || `client-${Date.now()}`,
-      clientName: newClientName.trim() || 'Artista Convidado',
-      bandOrArtistName: newBandName.trim() || newClientName.trim() || 'Artista Convidado',
+      clientName: newClientName.trim() || t('fallback_guests_artist'),
+      bandOrArtistName: newBandName.trim() || newClientName.trim() || t('fallback_guests_artist'),
       avatarUrl: chosenPhoto,
       photoUrl: chosenPhoto,
       sessionPhotoUrl: chosenPhoto,
       serviceId: newServiceId,
-      serviceName: selectedSrv?.name || 'Produção Musical no FPStudio',
+      serviceName: selectedSrv?.name || t('fallback_music_production'),
       rating: newRating,
       comment: newComment.trim(),
-      projectTitle: newProjectTitle.trim() || 'Gravação & Produção no FPStudio',
+      projectTitle: newProjectTitle.trim() || t('fallback_recording_production'),
       feedbackCategory: newCategory,
-      audioGenre: newAudioGenre.trim() || 'Música Brasileira',
+      audioGenre: newAudioGenre.trim() || t('fallback_genre_brasilileira'),
       tags: selectedTags.length > 0 ? selectedTags : ['FPStudio', 'Pro Tools', 'Salvador'],
       verifiedService: true,
       createdAt: new Date().toISOString(),
@@ -364,7 +367,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
       setUploadedFileSize(null);
     } catch (err) {
       console.error('Erro ao enviar avaliação:', err);
-      showToast('❌ Erro ao salvar depoimento no servidor.');
+      showToast(t('toast_save_error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -415,7 +418,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('O reconhecimento de voz não é suportado pelo seu navegador atual. Você pode digitar normalmente.');
+      alert(t('toast_voice_not_supported'));
       return;
     }
 
@@ -427,14 +430,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
 
       recognition.onstart = () => {
         setIsListeningVoice(true);
-        showToast('🎙️ Ouvindo... Pode falar a sua resposta!');
+        showToast(t('toast_voice_listening'));
       };
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         if (transcript) {
           setText((prev) => (prev && prev.trim().length > 0 ? `${prev} ${transcript}` : transcript));
-          showToast('✅ Fala convertida em texto com sucesso!');
+          showToast(t('toast_speech_to_text_success'));
         }
         setIsListeningVoice(false);
       };
@@ -469,7 +472,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
     setIsSubmitting(true);
     try {
       await onReplyReview(replyingReview.id, replyText.trim());
-      showToast('Resposta oficial de Fernando Padre publicada com sucesso!');
+      showToast(t('toast_official_reply_published'));
       setReplyingReview(null);
       setReplyText('');
     } catch (err) {
@@ -485,7 +488,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
     setIsSubmitting(true);
     try {
       await onReplyReview(reviewId, inlineReplyText.trim());
-      showToast('Resposta oficial publicada com sucesso!');
+      showToast(t('toast_inline_reply_published'));
       setInlineReplyId(null);
       setInlineReplyText('');
     } catch (err) {
@@ -500,7 +503,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
     setIsSubmitting(true);
     try {
       await onReplyReview(reviewId, '');
-      showToast('🗑️ Resposta do estúdio removida com sucesso!');
+      showToast(t('toast_studio_reply_removed'));
       if (inlineReplyId === reviewId) {
         setInlineReplyId(null);
         setInlineReplyText('');
@@ -511,7 +514,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
       }
     } catch (err) {
       console.error('Erro ao remover resposta:', err);
-      showToast('❌ Erro ao remover resposta.');
+      showToast(t('toast_remove_reply_error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -597,11 +600,11 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
   };
 
   const getRatingLabel = (score: number) => {
-    if (score >= 5) return 'Excelente! Superou todas as expectativas 🏆';
-    if (score >= 4) return 'Muito Bom! Ótimo som e estrutura ✨';
-    if (score >= 3) return 'Bom! Atendeu ao projeto 👍';
-    if (score >= 2) return 'Regular';
-    return 'Insatisfeito';
+    if (score >= 5) return t('rating_label_5');
+    if (score >= 4) return t('rating_label_4');
+    if (score >= 3) return t('rating_label_3');
+    if (score >= 2) return t('rating_label_2');
+    return t('rating_label_1');
   };
 
   return (
@@ -619,13 +622,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black tracking-wider uppercase">
                 <Star className="w-3.5 h-3.5 fill-amber-400" />
-                <span>DEPOIMENTOS & AVALIAÇÕES VERIFICADAS</span>
+                <span>{t('hero_badge_verified_reviews')}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
-                USUÁRIOS & ARTISTAS QUE GRAVARAM NO FPSTUDIO
+                {t('hero_title_users_artists')}
               </h1>
               <p className="text-xs sm:text-sm text-zinc-300 max-w-3xl leading-relaxed">
-                Opinião real, notas em estrelas e depoimentos de cantores, bandas, bateristas, instrumentistas e agências que produziram músicas, vinhetas e arranjos com o produtor Fernando Padre.
+                {t('hero_subtitle_description')}
               </p>
             </div>
 
@@ -636,7 +639,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 className="px-5 py-3 rounded-2xl bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs shadow-[0_0_25px_rgba(0,255,65,0.4)] hover:scale-105 transition flex items-center gap-2 cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4 text-black" />
-                <span>DEIXAR MEU DEPOIMENTO</span>
+                <span>{t('btn_leave_my_review')}</span>
               </button>
 
               {onNavigateToBooking && (
@@ -645,7 +648,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   className="px-5 py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white font-black text-xs border border-zinc-700 hover:border-[#00FF41] transition flex items-center gap-2 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-[#00FF41]" />
-                  <span>AGENDAR MINHA GRAVAÇÃO</span>
+                  <span>{t('btn_schedule_my_recording')}</span>
                 </button>
               )}
             </div>
@@ -657,13 +660,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             {/* Big Score Card */}
             <div className="md:col-span-4 bg-zinc-950/80 border border-zinc-800 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-3">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                MÉDIA GERAL DAS AVALIAÇÕES
+                {t('stats_overall_average_label')}
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-5xl sm:text-6xl font-black text-white tracking-tight">
                   {averageRating}
                 </span>
-                <span className="text-xl font-bold text-zinc-500">/ 5.0</span>
+                <span className="text-xl font-bold text-zinc-500">{t('stats_rating_scale')}</span>
               </div>
               <div className="flex items-center gap-1 text-amber-400">
                 {[1, 2, 3, 4, 5].map((s) => (
@@ -672,7 +675,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30 text-[11px] font-black">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>100% dos artistas recomendam</span>
+                <span>{t('stats_artists_recommend')}</span>
               </div>
               <p className="text-[11px] text-zinc-400">
                 Baseado em <strong className="text-white">{totalReviewsCount}</strong> avaliações registradas de clientes reais.
@@ -682,7 +685,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             {/* Rating Breakdown Bars */}
             <div className="md:col-span-4 bg-zinc-950/80 border border-zinc-800 rounded-2xl p-6 flex flex-col justify-center space-y-2.5">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                DISTRIBUIÇÃO DE NOTAS
+                {t('stats_rating_distribution')}
               </span>
               {[5, 4, 3, 2, 1].map((stars) => {
                 const count = ratingCounts[stars as keyof typeof ratingCounts] || 0;
@@ -709,37 +712,37 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             {/* Quality Pillars */}
             <div className="md:col-span-4 bg-zinc-950/80 border border-zinc-800 rounded-2xl p-6 flex flex-col justify-between space-y-3">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                DESTAQUES TÉCNICOS & ESTRUTURA
+                {t('pillars_technical_highlights')}
               </span>
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zinc-300 flex items-center gap-1.5">
-                    <Sliders className="w-3.5 h-3.5 text-[#00FF41]" /> Qualidade de Captação & DAW
+                    <Sliders className="w-3.5 h-3.5 text-[#00FF41]" /> {t('pillar_capture_quality')}
                   </span>
                   <span className="font-mono font-black text-[#00FF41]">5.0 / 5.0</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zinc-300 flex items-center gap-1.5">
-                    <Mic2 className="w-3.5 h-3.5 text-[#00FF41]" /> Microfone Kadosh & Acústica
+                    <Mic2 className="w-3.5 h-3.5 text-[#00FF41]" /> {t('pillar_microphone_acoustics')}
                   </span>
                   <span className="font-mono font-black text-[#00FF41]">4.9 / 5.0</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zinc-300 flex items-center gap-1.5">
-                    <Music className="w-3.5 h-3.5 text-[#00FF41]" /> Afinação Vocal & Melodyne
+                    <Music className="w-3.5 h-3.5 text-[#00FF41]" /> {t('pillar_vocal_tuning')}
                   </span>
                   <span className="font-mono font-black text-[#00FF41]">5.0 / 5.0</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zinc-300 flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-[#00FF41]" /> Atendimento Fernando Padre
+                    <Award className="w-3.5 h-3.5 text-[#00FF41]" /> {t('pillar_fernando_service')}
                   </span>
                   <span className="font-mono font-black text-[#00FF41]">5.0 / 5.0</span>
                 </div>
               </div>
               <div className="pt-2 border-t border-zinc-800 text-[10px] text-zinc-400 flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[#00FF41]" />
-                <span>Padrão profissional para rádio, Spotify e YouTube</span>
+                <span>{t('pillars_professional_standard')}</span>
               </div>
             </div>
 
@@ -765,17 +768,17 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 rounded-full bg-[#00FF41]/20 text-[#00FF41] border border-[#00FF41]/40 text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>PAINEL DO PRODUTOR • FERNANDO PADRE</span>
+                <span>{t('producer_panel_header')}</span>
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-zinc-900 text-zinc-400 text-[10px] font-mono border border-zinc-800">
-                FPStudio Salvador
+                {t('producer_studio_location')}
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Central de Respostas aos Depoimentos
+              {t('producer_reply_hub_title')}
             </h2>
             <p className="text-xs text-zinc-300 max-w-2xl">
-              Responda diretamente aos depoimentos dos seus artistas e clientes. As respostas oficiais aparecem destacadas com o selo verificado do produtor Fernando Padre.
+              {t('producer_reply_hub_subtitle')}
             </p>
           </div>
 
@@ -786,8 +789,8 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 setProducerModeActive(!producerModeActive);
                 showToast(
                   !producerModeActive
-                    ? 'Modo Produtor Fernando Padre ATIVADO! Agora você pode responder a qualquer depoimento.'
-                    : 'Modo Produtor desativado.'
+                    ? t('toast_producer_mode_activated')
+                    : t('toast_producer_mode_deactivated')
                 );
               }}
               className={`px-4 py-2.5 rounded-2xl font-black text-xs transition flex items-center gap-2 cursor-pointer shadow-lg ${
@@ -816,7 +819,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
           >
             <div>
               <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
-                Total de Depoimentos
+                {t('filter_card_total_reviews')}
               </span>
               <span className="text-2xl font-black text-white">{totalReviewsCount}</span>
             </div>
@@ -836,7 +839,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
           >
             <div>
               <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block flex items-center gap-1">
-                <Clock className="w-3 h-3" /> Aguardando Resposta
+                <Clock className="w-3 h-3" /> {t('filter_card_pending')}
               </span>
               <span className="text-2xl font-black text-amber-400">{pendingRepliesCount}</span>
             </div>
@@ -856,7 +859,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
           >
             <div>
               <span className="text-[11px] font-bold text-[#00FF41] uppercase tracking-wider block flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Respondidos pelo Produtor
+                <CheckCircle2 className="w-3 h-3" /> {t('filter_card_replied')}
               </span>
               <span className="text-2xl font-black text-[#00FF41]">{answeredRepliesCount}</span>
             </div>
@@ -879,7 +882,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por artista, banda, resposta de Fernando Padre..."
+              placeholder={t('search_placeholder')}
               className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#00FF41] transition"
             />
             {searchTerm && (
@@ -905,7 +908,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Todos ({totalReviewsCount})
+                {t('filter_tab_all')} ({totalReviewsCount})
               </button>
 
               <button
@@ -917,7 +920,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 }`}
               >
                 <Clock className="w-3 h-3" />
-                <span>Pendentes ({pendingRepliesCount})</span>
+                <span>{t('filter_tab_pending')} ({pendingRepliesCount})</span>
               </button>
 
               <button
@@ -929,7 +932,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 }`}
               >
                 <CheckCircle2 className="w-3 h-3" />
-                <span>Respondidos ({answeredRepliesCount})</span>
+                <span>{t('filter_tab_replied')} ({answeredRepliesCount})</span>
               </button>
             </div>
 
@@ -941,9 +944,9 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="bg-transparent text-white font-bold text-xs focus:outline-none cursor-pointer"
               >
-                <option value="recent" className="bg-zinc-900">Mais Recentes</option>
-                <option value="likes" className="bg-zinc-900">Mais Curtidos</option>
-                <option value="rating" className="bg-zinc-900">Maior Nota</option>
+                <option value="recent" className="bg-zinc-900">{t('sort_option_recent')}</option>
+                <option value="likes" className="bg-zinc-900">{t('sort_option_most_likes')}</option>
+                <option value="rating" className="bg-zinc-900">{t('sort_option_highest_rating')}</option>
               </select>
             </div>
 
@@ -954,14 +957,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
         {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
           <span className="text-[11px] font-bold text-zinc-400 whitespace-nowrap mr-1">
-            Categoria:
+            {t('filter_category_label')}
           </span>
           {[
-            { id: 'all', label: 'Todas as Categorias' },
-            { id: 'produção', label: 'Produção com Arranjo' },
-            { id: 'gravação', label: 'Gravação & Captação' },
-            { id: 'mix_master', label: 'Edição & Afinação' },
-            { id: 'dublagem', label: 'Vinhetas & Locução' },
+            { id: 'all', label: t('category_all_reviews') },
+            { id: 'produção', label: t('category_production_arrangement') },
+            { id: 'gravação', label: t('category_recording_capture') },
+            { id: 'mix_master', label: t('category_editing_tuning') },
+            { id: 'dublagem', label: t('category_jingles_voiceover') },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -984,9 +987,9 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
           <div className="w-16 h-16 rounded-full bg-zinc-900 flex items-center justify-center mx-auto text-zinc-600">
             <MessageSquare className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-black text-white">Nenhum depoimento encontrado com os filtros selecionados</h3>
+          <h3 className="text-lg font-black text-white">{t('empty_no_reviews_found')}</h3>
           <p className="text-xs text-zinc-400 max-w-md mx-auto">
-            Tente remover a busca ou alterar a categoria para ver todos os depoimentos dos artistas.
+            {t('empty_try_different_filters')}
           </p>
           <button
             onClick={() => {
@@ -996,7 +999,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             }}
             className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
           >
-            Limpar Filtros
+            {t('btn_clear_filters')}
           </button>
         </div>
       ) : (
@@ -1026,14 +1029,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                           setZoomedPhoto({
                             url: review.avatarUrl || displayPhoto || '',
                             title: review.bandOrArtistName || review.clientName,
-                            subtitle: `Artista / Cliente: ${review.clientName}`,
+                            subtitle: `${t('zoom_subtitle_artist_client')}: ${review.clientName}`,
                             genre: review.audioGenre,
                             rating: review.rating,
                             comment: review.comment,
                           })
                         }
                         className="relative group/avatar cursor-pointer shrink-0"
-                        title="Clique para ampliar a foto do artista"
+                        title={t('avatar_zoom_title')}
                       >
                         <img
                           src={
@@ -1106,7 +1109,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2">
                         <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-[#00FF41]/40 text-[#00FF41] text-[11px] font-black uppercase flex items-center gap-1.5 shadow-lg">
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Gravação Oficial FPStudio</span>
+                          <span>{t('badge_official_recording')}</span>
                         </span>
 
                         <span className="px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-lg">
@@ -1127,7 +1130,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
 
                         <span className="px-3 py-1.5 rounded-xl bg-black/80 group-hover/photo:bg-[#00FF41] group-hover/photo:text-black border border-white/20 group-hover/photo:border-[#00FF41] text-[#00FF41] text-xs font-black flex items-center gap-1.5 transition-all shadow-xl shrink-0">
                           <ZoomIn className="w-4 h-4" />
-                          <span>Ver Foto HD</span>
+                          <span>{t('btn_view_hd_photo')}</span>
                         </span>
                       </div>
                     </div>
@@ -1137,7 +1140,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <span className="px-3 py-1 rounded-xl bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30 text-xs font-black uppercase flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Sessão Concluída</span>
+                      <span>{t('badge_session_completed')}</span>
                     </span>
 
                     {review.serviceName && (
@@ -1183,7 +1186,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                           <span className="text-xs font-black text-[#00FF41] uppercase tracking-wide flex items-center gap-1.5">
                             <span>Fernando Padre</span>
                             <span className="px-2 py-0.5 rounded bg-[#00FF41] text-black text-[10px] font-black tracking-wider shadow-[0_0_10px_rgba(0,255,65,0.4)]">
-                              PRODUTOR OFICIAL
+                              {t('reply_official_producer')}
                             </span>
                           </span>
                         </div>
@@ -1212,14 +1215,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                             className="px-3 py-1.5 bg-zinc-900 hover:bg-[#00FF41] text-[#00FF41] hover:text-black text-xs font-black rounded-xl border border-[#00FF41]/40 hover:border-[#00FF41] transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
-                            <span>Editar do Meu Jeito</span>
+                            <span>{t('btn_edit_your_way')}</span>
                           </button>
                           <button
                             onClick={() => handleDeleteReply(review.id)}
                             className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold rounded-xl border border-rose-800/40 transition flex items-center gap-1.5 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                            <span>Remover Resposta</span>
+                            <span>{t('btn_remove_reply')}</span>
                           </button>
                         </div>
                       )}
@@ -1231,7 +1234,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     <div className="mt-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2 text-xs text-amber-400 font-bold">
                         <Clock className="w-4 h-4 shrink-0" />
-                        <span>Aguardando resposta do produtor Fernando Padre</span>
+                        <span>{t('status_waiting_producer_reply')}</span>
                       </div>
                       <button
                         onClick={() => {
@@ -1242,7 +1245,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         className="px-3.5 py-1.5 rounded-xl bg-[#00FF41] hover:bg-[#00e038] text-black text-xs font-black transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,255,65,0.4)] cursor-pointer shrink-0"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
-                        <span>Responder do Meu Jeito</span>
+                        <span>{t('btn_reply_my_way')}</span>
                       </button>
                     </div>
                   )}
@@ -1267,7 +1270,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                           }}
                           className="text-zinc-500 hover:text-white text-xs px-2 py-1 rounded bg-zinc-900 border border-zinc-800 transition cursor-pointer"
                         >
-                          ✕ Fechar
+                          ✕ {t('btn_close_inline')}
                         </button>
                       </div>
 
@@ -1283,7 +1286,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                           }`}
                         >
                           <Edit3 className="w-3.5 h-3.5" />
-                          <span>✍️ Do Meu Jeito (Livre)</span>
+                          <span>✍️ {t('tab_mode_custom_free')}</span>
                         </button>
 
                         <button
@@ -1296,7 +1299,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                           }`}
                         >
                           <Wand2 className="w-3.5 h-3.5" />
-                          <span>⚡ Sugestões Prontas</span>
+                          <span>⚡ {t('tab_mode_templates')}</span>
                         </button>
 
                         <button
@@ -1316,7 +1319,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                           }`}
                         >
                           <Mic className="w-3.5 h-3.5" />
-                          <span>{isListeningVoice ? '🎙️ Ouvindo Voz...' : '🎙️ Ditar por Voz'}</span>
+                          <span>{isListeningVoice ? `🎙️ ${t('voice_listening_status')}` : `🎙️ ${t('btn_voice_dictation')}`}</span>
                         </button>
                       </div>
 
@@ -1324,7 +1327,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       {replyComposerMode === 'templates' && (
                         <div className="space-y-2 p-3 bg-zinc-950/80 rounded-2xl border border-zinc-800">
                           <label className="block text-[11px] font-black text-zinc-400 uppercase tracking-wider">
-                            Clique em uma ideia para preencher e edite do seu jeito:
+                            {t('label_template_instruction')}
                           </label>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {replyTemplates.map((tmpl, idx) => (
@@ -1334,7 +1337,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                                 onClick={() => {
                                   setInlineReplyText(tmpl.text);
                                   setReplyComposerMode('custom');
-                                  showToast('Sugestão inserida! Agora você pode personalizar à vontade.');
+                                  showToast(t('toast_template_inserted'));
                                 }}
                                 className="p-2.5 rounded-xl bg-zinc-900 hover:bg-[#00FF41]/15 border border-zinc-800 hover:border-[#00FF41] text-left transition cursor-pointer group"
                               >
@@ -1355,7 +1358,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400">
                           <span className="flex items-center gap-1">
                             <Smile className="w-3 h-3 text-[#00FF41]" />
-                            <span>Adicionar Emojis de Estúdio (Clique para inserir):</span>
+                            <span>{t('label_studio_emojis')}</span>
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-1.5 bg-zinc-950 p-2 rounded-xl border border-zinc-800">
@@ -1380,7 +1383,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400">
                           <span className="flex items-center gap-1">
                             <Sparkles className="w-3 h-3 text-amber-400" />
-                            <span>Frases Rápidas do Produtor (Clique para anexar ao texto):</span>
+                            <span>{t('label_quick_snippets')}</span>
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -1404,13 +1407,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       {/* Main Textarea: 100% Free Custom Response */}
                       <div className="space-y-1.5">
                         <label className="block text-xs font-black text-zinc-200">
-                          Sua Mensagem Personalizada:
+                          {t('label_custom_message')}:
                         </label>
                         <textarea
                           rows={4}
                           value={inlineReplyText}
                           onChange={(e) => setInlineReplyText(e.target.value)}
-                          placeholder="Escreva livremente aqui a sua resposta do seu jeito como produtor (ex: elogio à afinação, arranjos de violão/guitarra, energia na bateria, masterização...)"
+                          placeholder={t('placeholder_custom_message')}
                           className="w-full bg-zinc-950 border border-zinc-700 rounded-2xl p-4 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#00FF41] focus:ring-1 focus:ring-[#00FF41] transition leading-relaxed"
                         />
                       </div>
@@ -1420,7 +1423,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         <div className="p-3.5 rounded-2xl bg-[#00FF41]/10 border border-[#00FF41]/30 space-y-1.5 animate-fadeIn">
                           <span className="text-[10px] font-black text-[#00FF41] uppercase tracking-wider block flex items-center gap-1">
                             <Eye className="w-3 h-3" />
-                            Prévia de como os artistas verão sua resposta oficial:
+                            {t('label_preview_official_reply')}
                           </span>
                           <div className="pl-3 border-l-2 border-[#00FF41] text-xs text-zinc-200 italic">
                             "{inlineReplyText}"
@@ -1432,7 +1435,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] text-zinc-500 font-mono">
-                            {inlineReplyText.length} caracteres
+                            {inlineReplyText.length} {t('label_character_count')}
                           </span>
                           {inlineReplyText.trim().length > 0 && (
                             <button
@@ -1440,7 +1443,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                               onClick={() => setInlineReplyText('')}
                               className="text-[11px] text-zinc-500 hover:text-rose-400 underline cursor-pointer"
                             >
-                              Limpar texto
+                              {t('btn_clear_text')}
                             </button>
                           )}
                         </div>
@@ -1454,7 +1457,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                             }}
                             className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-bold transition cursor-pointer"
                           >
-                            Cancelar
+                            {t('reply_btn_cancel')}
                           </button>
                           <button
                             type="button"
@@ -1463,7 +1466,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                             className="px-5 py-2 rounded-xl bg-[#00FF41] hover:bg-[#00e038] disabled:opacity-50 text-black text-xs font-black shadow-[0_0_20px_rgba(0,255,65,0.5)] transition flex items-center gap-1.5 cursor-pointer"
                           >
                             <Send className="w-3.5 h-3.5" />
-                            <span>{isSubmitting ? 'Salvando...' : 'Publicar Minha Resposta'}</span>
+                            <span>{isSubmitting ? t('reply_btn_saving') : t('btn_publish_my_reply')}</span>
                           </button>
                         </div>
                       </div>
@@ -1494,10 +1497,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     <button
                       onClick={() => handleCopyReview(review)}
                       className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 transition text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                      title="Copiar Depoimento"
+                      title={t('btn_copy_review_title')}
                     >
                       <Share2 className="w-3.5 h-3.5" />
-                      <span>{isCopying ? 'Copiado!' : 'Compartilhar'}</span>
+                      <span>{isCopying ? t('btn_copied') : t('btn_share')}</span>
                     </button>
 
                     {/* Like Button */}
@@ -1527,7 +1530,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         className="px-3 py-1.5 rounded-xl bg-[#00FF41]/10 hover:bg-[#00FF41] hover:text-black text-[#00FF41] border border-[#00FF41]/30 transition text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-[0_0_10px_rgba(0,255,65,0.15)]"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>{review.studioReply ? 'Editar Resposta' : 'Responder'}</span>
+                        <span>{review.studioReply ? t('btn_edit_reply') : t('btn_reply')}</span>
                       </button>
                     )}
 
@@ -1536,10 +1539,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       <button
                         onClick={() => {
                           onDeleteReview(review.id);
-                          showToast('🗑️ Depoimento excluído com sucesso.');
+                          showToast(t('toast_review_deleted'));
                         }}
                         className="p-2 rounded-xl bg-rose-950/40 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-800/60 transition cursor-pointer"
-                        title="Excluir Depoimento"
+                        title={t('btn_delete_review_title')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1561,13 +1564,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
           <div className="space-y-1">
             <span className="text-xs font-black text-[#00FF41] uppercase tracking-wider flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span>⭐ GALERIA DE ARTISTAS & SESSÕES DE SUCESSO</span>
+              <span>{t('gallery_star_header')}</span>
             </span>
             <h2 className="text-xl sm:text-2xl font-black text-white">
-              GRAVAÇÕES REALIZADAS NO FPSTUDIO
+              {t('gallery_recordings_made')}
             </h2>
             <p className="text-xs sm:text-sm text-zinc-400">
-              Clique em qualquer foto para abrir em alta resolução (HD).
+              {t('gallery_click_for_hd')}
             </p>
           </div>
 
@@ -1576,7 +1579,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
             className="px-5 py-2.5 bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs rounded-xl shadow-[0_0_20px_rgba(0,255,65,0.4)] transition flex items-center gap-2 cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
-            <span>Fez Serviço? Deixe sua Avaliação com Foto</span>
+            <span>{t('btn_leave_photo_review')}</span>
           </button>
         </div>
 
@@ -1613,7 +1616,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2">
                     <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-[#00FF41]/40 text-[#00FF41] text-[11px] font-black uppercase flex items-center gap-1 shadow-lg">
                       <Star className="w-3.5 h-3.5 fill-[#00FF41]" />
-                      <span>{rev.rating.toFixed(1)} Estrelas</span>
+                      <span>{rev.rating.toFixed(1)} {t('badge_stars')}</span>
                     </span>
 
                     <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-lg">
@@ -1625,7 +1628,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   <div className="absolute bottom-3 right-3">
                     <span className="px-3 py-1.5 rounded-xl bg-black/80 group-hover:bg-[#00FF41] group-hover:text-black text-[#00FF41] text-xs font-black flex items-center gap-1.5 transition shadow-xl">
                       <ZoomIn className="w-4 h-4" />
-                      <span>Ampliar Foto</span>
+                      <span>{t('btn_zoom_photo_gallery')}</span>
                     </span>
                   </div>
                 </div>
@@ -1669,7 +1672,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-md bg-[#00FF41]/20 text-[#00FF41] text-[10px] font-black uppercase">
-                    FOTO EM ALTA RESOLUÇÃO
+                    {t('lightbox_hd_photo_label')}
                   </span>
                   {zoomedPhoto.genre && (
                     <span className="px-2.5 py-0.5 rounded-md bg-zinc-800 text-zinc-300 text-[10px] font-bold">
@@ -1688,7 +1691,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               <button
                 onClick={() => setZoomedPhoto(null)}
                 className="p-2 text-zinc-400 hover:text-white rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 transition cursor-pointer"
-                title="Fechar Visualização"
+                title={t('lightbox_close_title')}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1708,7 +1711,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               <div className="p-4 sm:p-5 bg-zinc-950 border-t border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
                 <div className="space-y-1 max-w-2xl">
                   <span className="text-[10px] font-black text-zinc-500 uppercase tracking-wider">
-                    DEPOIMENTO DO ARTISTA
+                    {t('lightbox_artist_testimonial')}
                   </span>
                   <p className="text-zinc-300 italic line-clamp-2">
                     "{zoomedPhoto.comment}"
@@ -1719,7 +1722,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   onClick={() => setZoomedPhoto(null)}
                   className="px-5 py-2 bg-zinc-800 hover:bg-[#00FF41] hover:text-black text-white font-bold text-xs rounded-xl transition cursor-pointer shrink-0"
                 >
-                  Fechar
+                  {t('btn_lightbox_close')}
                 </button>
               </div>
             )}
@@ -1737,10 +1740,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#00FF41]/15 text-[#00FF41] border border-[#00FF41]/30 text-[10px] font-black uppercase">
                   <Star className="w-3 h-3 fill-[#00FF41]" />
-                  <span>Sua Opinião no FPStudio</span>
+                  <span>{t('modal_your_opinion_label')}</span>
                 </div>
                 <h3 className="text-lg sm:text-xl font-black text-white">
-                  AVALIAR SERVIÇO & DEIXAR DEPOIMENTO
+                  {t('modal_review_service_title')}
                 </h3>
               </div>
               <button
@@ -1757,27 +1760,27 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-zinc-300 mb-1">
-                    Seu Nome Completo *
+                    {t('label_full_name')} *
                   </label>
                   <input
                     type="text"
                     required
                     value={newClientName}
                     onChange={(e) => setNewClientName(e.target.value)}
-                    placeholder="Ex: Carlos Eduardo Silva"
+                    placeholder={t('placeholder_full_name_example')}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00FF41]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-zinc-300 mb-1">
-                    Nome da Banda ou Projeto Artístico
+                    {t('label_band_project_name')}
                   </label>
                   <input
                     type="text"
                     value={newBandName}
                     onChange={(e) => setNewBandName(e.target.value)}
-                    placeholder="Ex: Banda Axé Bahia Groove"
+                    placeholder={t('placeholder_band_project_example')}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00FF41]"
                   />
                 </div>
@@ -1787,7 +1790,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-zinc-300 mb-1">
-                    Serviço Realizado no Estúdio *
+                    {t('label_service_performed')} *
                   </label>
                   <select
                     value={newServiceId}
@@ -1810,13 +1813,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold text-zinc-300 mb-1">
-                    Título da Faixa / Projeto
+                    {t('label_track_project_title')}
                   </label>
                   <input
                     type="text"
                     value={newProjectTitle}
                     onChange={(e) => setNewProjectTitle(e.target.value)}
-                    placeholder="Ex: Single Autoral 'Luz da Bahia'"
+                    placeholder={t('placeholder_track_example')}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00FF41]"
                   />
                 </div>
@@ -1825,13 +1828,13 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               {/* Musical Genre */}
               <div>
                 <label className="block text-xs font-bold text-zinc-300 mb-1">
-                  Gênero Musical / Estilo
+                  {t('label_music_genre')}
                 </label>
                 <input
                   type="text"
                   value={newAudioGenre}
                   onChange={(e) => setNewAudioGenre(e.target.value)}
-                  placeholder="Ex: Axé, Pop Rock, MPB, Forró, Gospel, Trap, Comercial..."
+                  placeholder={t('placeholder_genre_example')}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00FF41]"
                 />
               </div>
@@ -1841,10 +1844,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label className="text-xs font-black text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                     <Camera className="w-4 h-4 text-[#00FF41]" />
-                    <span>FOTO DA SESSÃO OU DO ARTISTA</span>
+                    <span>{t('label_session_photo')}</span>
                   </label>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 font-semibold">
-                    Opcional (Exibição em Alta Definição)
+                    {t('label_photo_optional_hd')}
                   </span>
                 </div>
 
@@ -1860,7 +1863,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     }`}
                   >
                     <Laptop className="w-3.5 h-3.5" />
-                    <span>Do Computador</span>
+                    <span>{t('tab_source_computer')}</span>
                   </button>
 
                   <button
@@ -1873,7 +1876,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     }`}
                   >
                     <LinkIcon className="w-3.5 h-3.5" />
-                    <span>Link / URL</span>
+                    <span>{t('tab_source_url')}</span>
                   </button>
 
                   <button
@@ -1886,7 +1889,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     }`}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Exemplos</span>
+                    <span>{t('tab_source_presets')}</span>
                   </button>
                 </div>
 
@@ -1919,10 +1922,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
 
                       <div className="space-y-0.5">
                         <p className="text-xs font-bold text-white">
-                          Clique para escolher foto do computador ou arraste aqui
+                          {t('drag_drop_instruction')}
                         </p>
                         <p className="text-[11px] text-zinc-400">
-                          Formatos aceitos: JPG, PNG, WEBP, GIF (Otimização automática HD)
+                          {t('drag_drop_formats')}
                         </p>
                       </div>
 
@@ -1935,14 +1938,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         className="px-4 py-1.5 rounded-xl bg-zinc-800 hover:bg-[#00FF41] hover:text-black text-[#00FF41] border border-zinc-700 hover:border-[#00FF41] text-xs font-bold transition flex items-center gap-1.5"
                       >
                         <FolderUp className="w-3.5 h-3.5" />
-                        <span>Selecionar Arquivo</span>
+                        <span>{t('btn_select_file')}</span>
                       </button>
                     </div>
 
                     {isProcessingFile && (
                       <div className="flex items-center justify-center gap-2 p-2 rounded-xl bg-zinc-900 text-xs text-[#00FF41] font-semibold animate-pulse">
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Processando e otimizando imagem em alta resolução...</span>
+                        <span>{t('processing_image_label')}</span>
                       </div>
                     )}
 
@@ -1972,7 +1975,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       <LinkIcon className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
                     </div>
                     <p className="text-[11px] text-zinc-400">
-                      Cole um link direto de foto do Instagram, Google Fotos, Imgur, etc.
+                      {t('url_paste_instruction')}
                     </p>
                   </div>
                 )}
@@ -1981,7 +1984,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 {photoSourceTab === 'presets' && (
                   <div className="space-y-2">
                     <p className="text-[11px] text-zinc-400">
-                      Selecione uma foto de estúdio correspondente à sua sessão:
+                      {t('preset_select_instruction')}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {[
@@ -2041,7 +2044,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-xs font-black text-white">
                         <CheckCircle2 className="w-4 h-4 text-[#00FF41]" />
-                        <span>Foto Carregada com Sucesso</span>
+                        <span>{t('photo_uploaded_label')}</span>
                         {uploadedFileName && (
                           <span className="text-[11px] font-normal text-zinc-400 truncate max-w-[180px]">
                             ({uploadedFileName} {uploadedFileSize ? `• ${uploadedFileSize}` : ''})
@@ -2053,10 +2056,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         type="button"
                         onClick={handleRemovePhoto}
                         className="px-2.5 py-1 bg-rose-950/60 hover:bg-rose-600 border border-rose-800 text-rose-300 hover:text-white rounded-lg text-[10px] font-black transition flex items-center gap-1 cursor-pointer"
-                        title="Remover foto selecionada"
+                        title={t('btn_remove_photo')}
                       >
                         <Trash2 className="w-3 h-3" />
-                        <span>Remover Foto</span>
+                        <span>{t('btn_remove_photo')}</span>
                       </button>
                     </div>
 
@@ -2070,10 +2073,10 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[11px] text-white drop-shadow">
                         <span className="font-bold flex items-center gap-1">
                           <Eye className="w-3.5 h-3.5 text-[#00FF41]" />
-                          <span>Prévia da exibição em tela cheia</span>
+                          <span>{t('preview_fullscreen_label')}</span>
                         </span>
                         <span className="px-2 py-0.5 rounded bg-black/70 border border-white/20 text-[#00FF41] font-mono text-[10px] font-bold">
-                          HD 1080p
+                          {t('badge_hd_1080p')}
                         </span>
                       </div>
                     </div>
@@ -2084,7 +2087,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               {/* Interactive Star Rating Selector */}
               <div className="bg-zinc-950 p-4 rounded-2xl border border-zinc-800 space-y-2 text-center">
                 <label className="block text-xs font-black text-zinc-300 uppercase tracking-wider">
-                  SUA NOTA EM ESTRELAS (1 A 5) *
+                  {t('label_star_rating')} (1 A 5) *
                 </label>
                 <div className="flex items-center justify-center gap-2 py-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -2112,14 +2115,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               {/* Comment / Review Textarea */}
               <div>
                 <label className="block text-xs font-bold text-zinc-300 mb-1">
-                  Seu Comentário / Depoimento Completo *
+                  {t('label_comment_testimonial')} *
                 </label>
                 <textarea
                   required
                   rows={4}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Conte como foi sua experiência: o que achou da acústica, dos instrumentos (Ibanez, Memphis, violões, baixos), da captação no Pro Tools, da afinação vocal e do atendimento do Fernando Padre..."
+                  placeholder={t('placeholder_comment_experience')}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3.5 text-xs text-white focus:outline-none focus:border-[#00FF41]"
                 />
               </div>
@@ -2127,7 +2130,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               {/* Tags Suggestions */}
               <div className="space-y-2">
                 <label className="block text-[11px] font-bold text-zinc-400">
-                  Destaques da Sessão (Clique para adicionar tags):
+                  {t('label_session_highlights')}:
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {availableTagSuggestions.map((tag) => {
@@ -2158,7 +2161,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   onClick={() => setIsNewReviewModalOpen(false)}
                   className="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl border border-zinc-800 transition cursor-pointer"
                 >
-                  Cancelar
+                  {t('btn_cancel')}
                 </button>
 
                 <button
@@ -2167,7 +2170,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   className="px-6 py-2.5 bg-[#00FF41] hover:bg-[#00e038] disabled:opacity-50 text-black font-black text-xs rounded-xl shadow-[0_0_20px_rgba(0,255,65,0.4)] transition flex items-center gap-2 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{isSubmitting ? 'Publicando...' : 'PUBLICAR DEPOIMENTO'}</span>
+                  <span>{isSubmitting ? t('btn_publishing') : t('btn_submit_testimonial')}</span>
                 </button>
               </div>
 
@@ -2188,7 +2191,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                   FERNANDO PADRE • PRODUTOR OFICIAL
                 </span>
                 <h3 className="text-base font-black text-white">
-                  Responder ao Artista: {replyingReview.bandOrArtistName || replyingReview.clientName}
+                  {t('modal_reply_artist_title')}: {replyingReview.bandOrArtistName || replyingReview.clientName}
                 </h3>
               </div>
               <button
@@ -2259,7 +2262,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               {replyComposerMode === 'templates' && (
                 <div className="space-y-2 p-3 bg-zinc-950 rounded-2xl border border-zinc-800">
                   <label className="block text-[11px] font-black text-zinc-400 uppercase tracking-wider">
-                    Modelos de Respostas Rápidas (Clique para usar e edite como quiser):
+                    {t('reply_label_quick_reply_templates')}
                   </label>
                   <div className="grid grid-cols-1 gap-2">
                     {replyTemplates.map((tmpl, idx) => (
@@ -2269,7 +2272,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                         onClick={() => {
                           setReplyText(tmpl.text);
                           setReplyComposerMode('custom');
-                          showToast('Sugestão aplicada! Personalize à vontade.');
+                          showToast(t('toast_template_applied'));
                         }}
                         className="p-2.5 rounded-xl bg-zinc-900 hover:bg-[#00FF41]/15 border border-zinc-800 hover:border-[#00FF41] text-left transition cursor-pointer group"
                       >
@@ -2290,7 +2293,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400">
                   <span className="flex items-center gap-1">
                     <Smile className="w-3 h-3 text-[#00FF41]" />
-                    <span>Emojis de Estúdio:</span>
+                    <span>{t('reply_label_studio_emojis')}</span>
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1 bg-zinc-950 p-2 rounded-xl border border-zinc-800">
@@ -2314,7 +2317,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 <div className="flex items-center justify-between text-[11px] font-bold text-zinc-400">
                   <span className="flex items-center gap-1">
                     <Sparkles className="w-3 h-3 text-amber-400" />
-                    <span>Frases Rápidas do Produtor:</span>
+                    <span>{t('reply_label_quick_phrases')}:</span>
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -2338,14 +2341,14 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               {/* Free Textarea */}
               <div>
                 <label className="block text-xs font-black text-zinc-200 mb-1">
-                  Mensagem de Resposta Oficial de Fernando Padre:
+                  {t('reply_label_official_message')}:
                 </label>
                 <textarea
                   rows={4}
                   required
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Escreva livremente aqui a sua resposta do seu jeito..."
+                  placeholder={t('reply_placeholder_free_text')}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-2xl p-4 text-xs sm:text-sm text-white focus:outline-none focus:border-[#00FF41] focus:ring-1 focus:ring-[#00FF41] transition leading-relaxed"
                 />
               </div>
@@ -2355,7 +2358,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                 <div className="p-3.5 rounded-2xl bg-[#00FF41]/10 border border-[#00FF41]/30 space-y-1.5 animate-fadeIn">
                   <span className="text-[10px] font-black text-[#00FF41] uppercase tracking-wider block flex items-center gap-1">
                     <Eye className="w-3 h-3" />
-                    Prévia da resposta oficial:
+                    {t('reply_label_preview_official')}
                   </span>
                   <div className="pl-3 border-l-2 border-[#00FF41] text-xs text-zinc-200 italic">
                     "{replyText}"
@@ -2366,7 +2369,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-zinc-500 font-mono">
-                    {replyText.length} caracteres
+                    {replyText.length} {t('reply_label_character_count')}
                   </span>
                   {replyText.trim().length > 0 && (
                     <button
@@ -2374,7 +2377,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       onClick={() => setReplyText('')}
                       className="text-[11px] text-zinc-500 hover:text-rose-400 underline cursor-pointer"
                     >
-                      Limpar
+                      {t('reply_btn_clear')}
                     </button>
                   )}
                 </div>
@@ -2388,7 +2391,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                       className="px-3.5 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-bold text-xs rounded-xl border border-rose-800/40 transition flex items-center gap-1.5 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Remover Resposta</span>
+                      <span>{t('reply_btn_remove_reply')}</span>
                     </button>
                   )}
 
@@ -2397,7 +2400,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     onClick={() => setReplyingReview(null)}
                     className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-bold text-xs rounded-xl border border-zinc-800 transition cursor-pointer"
                   >
-                    Cancelar
+                    {t('reply_btn_cancel')}
                   </button>
 
                   <button
@@ -2406,7 +2409,7 @@ export const ReviewsView: React.FC<ReviewsViewProps> = ({
                     className="px-5 py-2 bg-[#00FF41] hover:bg-[#00e038] disabled:opacity-50 text-black font-black text-xs rounded-xl shadow-[0_0_20px_rgba(0,255,65,0.4)] transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>{isSubmitting ? 'Salvando...' : 'Publicar Resposta'}</span>
+                    <span>{isSubmitting ? t('reply_btn_saving') : t('reply_btn_publish_reply')}</span>
                   </button>
                 </div>
               </div>

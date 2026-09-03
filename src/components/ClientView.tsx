@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
+import { useCustomization } from '../context/CustomizationContext';
 import {
   Calendar,
   Clock,
@@ -118,6 +119,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
   onDeleteChatMessage,
   onUpdateClientProfile,
 }) => {
+  const { t } = useCustomization();
   // New Booking State
   const [selectedService, setSelectedService] = useState<StudioService | undefined>(undefined);
   const [selectedRoom, setSelectedRoom] = useState<StudioRoom | undefined>(undefined);
@@ -1044,7 +1046,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
-              <span>Agendar</span>
+              <span>{t('btn_agendar')}</span>
             </button>
 
             <button
@@ -1056,7 +1058,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
               }`}
             >
               <FileCheck2 className="w-3.5 h-3.5" />
-              <span>Meus Pedidos</span>
+              <span>{t('nav_my_orders')}</span>
               {clientBookings.length > 0 && (
                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                   activeTab === 'bookings' ? 'bg-black text-[#00FF41]' : 'bg-[#00FF41]/20 text-[#00FF41]'
@@ -1076,7 +1078,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
             >
               <Music2 className="w-3.5 h-3.5 shrink-0" />
               <span className="flex flex-col text-left leading-[1.1]">
-                <span className="font-black text-xs">Serviços</span>
+                <span className="font-black text-xs">{t('tabs_services')}</span>
                 <span className={`text-[9.5px] font-bold ${
                   activeTab === 'services_equipment' || activeTab === 'services' || activeTab === 'equipment' ? 'opacity-85' : 'text-zinc-400'
                 }`}>& Material</span>
@@ -1092,7 +1094,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
               }`}
             >
               <Star className="w-3.5 h-3.5" />
-              <span>Depoimentos ⭐</span>
+              <span>{t('nav_reviews')}</span>
             </button>
 
             <button
@@ -1104,7 +1106,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
-              <span>Chat</span>
+              <span>{t('tabs_chat')}</span>
               {currentChatMsgs.length > 0 && (
                 <span className="w-2 h-2 rounded-full bg-[#00FF41] animate-ping" />
               )}
@@ -1112,7 +1114,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
 
             <button
               onClick={() => setActiveTab('profile')}
-              title="Meu Cadastro"
+              title={t('nav_profile')}
               className={`p-2 sm:px-2.5 sm:py-2 rounded-xl text-xs font-bold transition flex items-center justify-center whitespace-nowrap cursor-pointer ${
                 activeTab === 'profile'
                   ? 'bg-[#00FF41] text-black font-black shadow-[0_0_15px_rgba(0,255,65,0.3)]'
@@ -1126,10 +1128,10 @@ export const ClientView: React.FC<ClientViewProps> = ({
           <div className="hidden xl:flex items-center gap-2 text-xs text-zinc-400 shrink-0">
             <span className="text-zinc-500">Cliente:</span>
             <span className="font-bold text-white bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800 flex items-center gap-1.5 max-w-[200px] truncate">
-              <span className="truncate">{activeClient?.bandOrArtistName || activeClient?.name || 'Cliente'}</span>
+              <span className="truncate">{activeClient?.bandOrArtistName || activeClient?.name || t('booking_draft_default_client_name')}</span>
               {activeClient?.cpf && (
                 <span className="text-[9px] text-[#00FF41] font-mono px-1 py-0.5 rounded bg-[#00FF41]/10 border border-[#00FF41]/30 shrink-0">
-                  CPF OK
+                  {t('tabs_cpf_ok')}
                 </span>
               )}
             </span>
