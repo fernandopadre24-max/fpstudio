@@ -1464,7 +1464,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                      Quantidade de Trilhas / Músicas a Gravar / Produzir:
+                      {t('booking_label_track_count')}:
                     </label>
                     <span className="text-[10px] text-indigo-500 font-semibold">Defina o nº de faixas</span>
                   </div>
@@ -1505,7 +1505,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                               : 'bg-white dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600/50'
                           }`}
                         >
-                          {num} {num === 1 ? 'trilha' : 'trilhas'}
+                          {num} {num === 1 ? t('booking_track_singular') : t('booking_track_plural')}
                         </button>
                       ))}
                     </div>
@@ -1516,10 +1516,10 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                      Trilhas de Referência (Guia da Música) - Opcional
+                      {t('booking_label_reference_tracks')}
                     </label>
                     <span className="text-[10px] text-fuchsia-500 font-semibold">
-                      Enviadas {referenceTracks.length}/{tracksCount}
+                      {t('booking_reference_tracks_sent')} {referenceTracks.length}/{tracksCount}
                     </span>
                   </div>
                   <div className="bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -1533,12 +1533,12 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                             ? 'bg-zinc-300 dark:bg-slate-700 text-zinc-500 dark:text-slate-400 border-zinc-200 dark:border-slate-600 cursor-not-allowed'
                             : 'bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/40 hover:bg-fuchsia-500/25'
                         }`}
-                        title="Enviar MP3 da música que deseja gravar/produzir (guia)"
+                        title={t('booking_label_reference_tracks')}
                       >
-                        <Mic2 className="w-4 h-4" /> {referenceTracks.length >= tracksCount ? 'Limite Atingido' : 'Adicionar Trilha MP3'}
+                        <Mic2 className="w-4 h-4" /> {referenceTracks.length >= tracksCount ? t('booking_limit_reached') : t('btn_add_included')}
                       </button>
                       <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
-                        Envie até {tracksCount} {tracksCount === 1 ? 'trilha de referência' : 'trilhas de referência'} (MP3) da música que deseja gravar/produzir
+                        {t('booking_reference_tracks_hint')}
                       </span>
                     </div>
 
@@ -1580,10 +1580,10 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     <div>
                       <label className="block text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                         <Sliders className="w-3.5 h-3.5 text-[#00FF41]" />
-                        Instrumentos, Equipamentos & Processamento por Trilha
+                        {t('booking_label_instruments_processing')}
                       </label>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Selecione os instrumentos e processamentos que serão executados na gravação (valores unitários por faixa).
+                        {t('booking_instruments_subtitle')}
                       </p>
                     </div>
                     
@@ -1640,14 +1640,14 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                   {/* Category Filter Pills & Search */}
                   <div className="flex flex-wrap items-center gap-1.5">
                     {[
-                      { id: 'todos', label: 'Todos os Instrumentos' },
-                      { id: 'Inclusos', label: '🛡️ Inclusos (Grátis)' },
-                      { id: 'Guitarras & Baixos', label: '🎸 Guitarras & Baixos' },
-                      { id: 'Violões & Sanfona', label: '🪕 Violões & Sanfona' },
-                      { id: 'Bateria & Percussão', label: '🥁 Bateria & Percussão' },
-                      { id: 'Teclados & Cordas', label: '🎹 Teclados & Cordas' },
-                      { id: 'Vocais', label: '🎙️ Vozes' },
-                      { id: 'Edição Pro-Tools', label: '🎚️ Edição Pro-Tools' },
+                      { id: 'todos', label: t('booking_category_all') },
+                      { id: 'Inclusos', label: '🛡️ ' + t('booking_category_included') },
+                      { id: 'Guitarras & Baixos', label: '🎸 ' + t('booking_category_guitars_basses') },
+                      { id: 'Violões & Sanfona', label: '🪕 ' + t('booking_category_violoes_sanfona') },
+                      { id: 'Bateria & Percussão', label: '🥁 ' + t('booking_category_battery_percussion') },
+                      { id: 'Teclados & Cordas', label: '🎹 ' + t('booking_category_keyboards_strings') },
+                      { id: 'Vocais', label: '🎙️ ' + t('booking_category_vocals') },
+                      { id: 'Edição Pro-Tools', label: '🎚️ ' + t('booking_category_protools_editing') },
                     ].map((cat) => {
                       const isActive = instrumentCategoryFilter === cat.id;
                       const countInCat = RECORDING_OPTIONS.filter((o) => o.categoryGroup && (cat.id === 'todos' || o.categoryGroup === cat.id)).length;
@@ -1762,7 +1762,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                 {/* 6. Payment Plan Selection */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Condição de Pagamento PIX:
+                    {t('booking_label_payment_plan')}:
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -1775,8 +1775,8 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-black uppercase text-[#00FF41]">Sinal de 50%</span>
-                        <span className="text-[9px] bg-[#00FF41]/20 text-[#00FF41] px-1.5 py-0.5 rounded font-bold">Recomendado</span>
+                        <span className="text-[11px] font-black uppercase text-[#00FF41]">{t('booking_payment_plan_signal')}</span>
+                        <span className="text-[9px] bg-[#00FF41]/20 text-[#00FF41] px-1.5 py-0.5 rounded font-bold">{t('booking_recommended_badge')}</span>
                       </div>
                       <p className="text-xs font-bold text-slate-900 dark:text-white mt-1">
                         50% agora + 50% na sessão
@@ -1796,7 +1796,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-black uppercase text-indigo-400">Integral 100%</span>
+                        <span className="text-[11px] font-black uppercase text-indigo-400">{t('booking_payment_plan_full')}</span>
                         <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded font-bold">À Vista</span>
                       </div>
                       <p className="text-xs font-bold text-slate-900 dark:text-white mt-1">
@@ -1848,17 +1848,17 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
 
                       <div className="pt-2 border-t border-slate-800 space-y-1">
                         <div className="flex items-center justify-between text-xs text-indigo-300">
-                          <span className="font-semibold">Valor Unitário por Faixa:</span>
+                          <span className="font-semibold">{t('booking_label_unit_price')}:</span>
                           <span className="font-bold text-white">{formatBRL(unitPrice)}</span>
                         </div>
                         <div className="flex items-center justify-between text-xs text-indigo-300">
-                          <span className="font-semibold">Quantidade de Trilhas:</span>
-                          <span className="font-black text-indigo-400">× {tracksCount} {tracksCount === 1 ? 'trilha' : 'trilhas'}</span>
+                          <span className="font-semibold">{t('booking_label_track_quantity')}:</span>
+                          <span className="font-black text-indigo-400">× {tracksCount} {tracksCount === 1 ? t('booking_track_singular') : t('booking_track_plural')}</span>
                         </div>
                       </div>
 
                       <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-300">Valor Total do Projeto:</span>
+                        <span className="text-xs font-bold text-slate-300">{t('booking_label_total_project')}:</span>
                         <span className="text-base font-black text-white">{formatBRL(totalSum)}</span>
                       </div>
 
@@ -1866,10 +1866,10 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       <div className="bg-[#00FF41]/10 border border-[#00FF41]/30 rounded-lg p-2.5 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-[#00FF41] font-black uppercase tracking-wider block">
-                            {paymentPlan === 'sinal_50' ? 'Valor do Sinal PIX (50%)' : 'Valor Total PIX (100%)'}
+                            {paymentPlan === 'sinal_50' ? t('booking_pix_value_label') + ' (50%)' : t('booking_pix_value_label') + ' (100%)'}
                           </span>
                           <span className="text-xs text-slate-300">
-                            {paymentPlan === 'sinal_50' ? 'Valor para confirmar a reserva' : 'Quitação completa da sessão'}
+                            {paymentPlan === 'sinal_50' ? t('booking_payment_plan_signal_hint') : t('booking_payment_plan_full_hint')}
                           </span>
                         </div>
                         <div className="text-right">
@@ -2189,14 +2189,14 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                         title="Anexar Comprovante de Pagamento"
                       >
                         <Paperclip className="w-3.5 h-3.5" />
-                        <span>Enviar Comprovante</span>
+                        <span>{t('chat_title_attach_receipt')}</span>
                       </button>
 
                       <button
                         onClick={() => handleOpenPixModal(selectedChatBooking)}
                         className="px-3 py-1.5 bg-[#00FF41] hover:bg-[#00e038] text-black font-black rounded-xl text-xs flex items-center gap-1 shadow-[0_0_15px_rgba(0,255,65,0.3)] cursor-pointer hover:scale-105 active:scale-95 transition"
                       >
-                        <QrCode className="w-3.5 h-3.5" /> Pagar com PIX
+                        <QrCode className="w-3.5 h-3.5" /> {t('chat_btn_pay_pix')}
                       </button>
                     </div>
                   </div>
@@ -2208,9 +2208,9 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                         <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 text-[#00FF41] flex items-center justify-center mx-auto">
                           <MessageSquare className="w-6 h-6" />
                         </div>
-                        <p className="text-white text-xs font-bold">Canal direto com o produtor FPStudio</p>
+                        <p className="text-white text-xs font-bold">{t('hero_studio_chat_link')}</p>
                         <p className="text-zinc-400 text-[11px] max-w-sm mx-auto">
-                          Solicite orçamentos, envie comprovantes de pagamento PIX e tire dúvidas em tempo real.
+                          {t('chat_empty_desc')}
                         </p>
                         <div className="pt-2 flex justify-center gap-2">
                           <button
@@ -2220,7 +2220,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                             }}
                             className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] rounded-lg border border-zinc-700 transition"
                           >
-                            💬 Mandar mensagem inicial
+                            💬 {t('chat_btn_initial_message')}
                           </button>
                         </div>
                       </div>
@@ -2442,7 +2442,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                           ? 'bg-[#00FF41] text-black border-[#00FF41]'
                           : 'bg-zinc-900 text-zinc-300 hover:text-white border-zinc-800 hover:border-[#00FF41]/60'
                       }`}
-                      title="Anexar Comprovante PIX (Imagem ou PDF)"
+                      title={t('chat_title_attach_pix_receipt')}
                     >
                       <Paperclip className="w-4 h-4" />
                     </button>
@@ -2456,7 +2456,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                           ? 'bg-purple-500 text-white border-purple-400'
                           : 'bg-zinc-900 text-fuchsia-400 hover:text-fuchsia-300 border-zinc-800 hover:border-fuchsia-500/60'
                       }`}
-                      title="Enviar Trilha de Referência (MP3) - guia da música desejada"
+                      title={t('chat_title_upload_reference')}
                     >
                       <Mic2 className="w-4 h-4" />
                     </button>
@@ -2465,8 +2465,8 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       type="text"
                       placeholder={
                         pendingAttachment?.fileType === 'audio'
-                          ? 'Descreva a guia da música (opcional)...'
-                          : 'Escreva sua mensagem ou envie o comprovante PIX...'
+                          ? t('chat_placeholder_music_guide')
+                          : t('chat_placeholder_message')
                       }
                       value={chatInputText}
                       onChange={(e) => setChatInputText(e.target.value)}
@@ -2477,13 +2477,13 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       type="submit"
                       className="px-4 py-2.5 bg-[#00FF41] hover:bg-[#00e038] text-black font-black rounded-xl text-xs flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(0,255,65,0.3)] cursor-pointer"
                     >
-                      <Send className="w-4 h-4" /> Enviar
+                      <Send className="w-4 h-4" /> {t('btn_send')}
                     </button>
                   </form>
                 </>
               ) : (
                 <div className="flex items-center justify-center h-full text-slate-500 text-xs">
-                  Selecione uma sessão ao lado para abrir o chat.
+                  {t('chat_no_session_selected')}
                 </div>
               )}
 
@@ -2502,13 +2502,13 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00FF41]/10 border border-[#00FF41]/30 text-[#00FF41] text-[11px] font-black uppercase tracking-wider">
-                    <UserCheck className="w-3.5 h-3.5" /> Ficha Cadastral do Cliente
+                    <UserCheck className="w-3.5 h-3.5" /> {t('profile_section_client_id')}
                   </div>
                   <h2 className="text-2xl font-black text-white tracking-tight">
-                    Cadastro de Dados Pessoais & CPF
+                    {t('profile_page_heading')}
                   </h2>
                   <p className="text-xs text-zinc-400 max-w-xl">
-                    Cadastre e atualize suas informações como CPF, RG, Endereço e Contatos para emissão de contratos de gravação, recibos oficiais e notas do FPStudio.
+                    {t('profile_page_desc')}
                   </p>
                 </div>
 
@@ -2524,29 +2524,29 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     className="px-3.5 py-2 rounded-xl bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Voltar ao Início</span>
+                    <span>{t('btn_back_home')}</span>
                   </button>
 
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Status Cadastral</span>
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{t('profile_registration_status_label')}</span>
                     <div className="flex items-center gap-1.5 flex-wrap justify-end">
                       {profileCpf ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-[11px] font-bold">
-                          <CheckCircle2 className="w-3 h-3" /> CPF OK
+                          <CheckCircle2 className="w-3 h-3" /> {t('profile_cpf_ok_badge')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full text-[11px] font-bold">
-                          <AlertCircle className="w-3 h-3" /> CPF Pendente
+                          <AlertCircle className="w-3 h-3" /> {t('profile_cpf_pending_badge')}
                         </span>
                       )}
 
                       {profilePixKey ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30 rounded-full text-[11px] font-bold">
-                          <QrCode className="w-3 h-3" /> PIX OK
+                          <QrCode className="w-3 h-3" /> {t('profile_pix_ok_badge')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-full text-[11px] font-bold">
-                          <QrCode className="w-3 h-3" /> PIX Não Definido
+                          <QrCode className="w-3 h-3" /> {t('profile_pix_undefined_badge')}
                         </span>
                       )}
 
