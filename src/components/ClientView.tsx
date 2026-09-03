@@ -67,6 +67,22 @@ import { EquipmentView } from './EquipmentView';
 import { RECORDING_OPTIONS, FPSTUDIO_EQUIPMENT } from '../data/initialData';
 import fpStudioLogo from '../assets/images/fpstudio_logo_1786495953533.jpg';
 
+type BookingMaterial = { id: string; label: string; price: number; categoryGroup: string; sublabel?: string; instrumentName?: string };
+
+const toBookingMaterial = (eq: StudioEquipmentItem): BookingMaterial => ({
+  id: eq.id,
+  label: eq.title,
+  price: eq.price ?? 0,
+  categoryGroup: eq.categoryTag,
+  sublabel: eq.description,
+  instrumentName: eq.title,
+});
+
+const getBookingMaterials = (equipmentItems: StudioEquipmentItem[]): BookingMaterial[] =>
+  equipmentItems && equipmentItems.length > 0
+    ? equipmentItems.map(toBookingMaterial)
+    : (RECORDING_OPTIONS as unknown as BookingMaterial[]);
+
 interface ClientViewProps {
   activeClient: UserProfile;
   isClientLoggedIn?: boolean;
@@ -122,6 +138,8 @@ export const ClientView: React.FC<ClientViewProps> = ({
   onUpdateClientProfile,
 }) => {
   const { t } = useCustomization();
+  const materials = getBookingMaterials(equipmentItems);
+  const materialById = (id: string) => materials.find((m) => m.id === id);
   // New Booking State
   const [selectedService, setSelectedService] = useState<StudioService | undefined>(undefined);
   const [selectedRoom, setSelectedRoom] = useState<StudioRoom | undefined>(undefined);
@@ -573,7 +591,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
     };
 
     const optionsTotal = selectedOptions.reduce((acc, optId) => {
-      const opt = RECORDING_OPTIONS.find((o) => o.id === optId);
+      const opt = materialById(optId);
       return acc + (opt ? opt.price : 0);
     }, 0);
 
@@ -582,7 +600,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
     const signalAmount = Math.round((estimatedTotal / 2) * 100) / 100;
 
     const optionsDetails = selectedOptions.map((optId) => {
-      const opt = RECORDING_OPTIONS.find((o) => o.id === optId);
+      const opt = materialById(optId);
       if (!opt) return optId;
       return opt.price === 0 ? `${opt.label} (Incluso)` : `${opt.label} (${formatBRL(opt.price)})`;
     });
@@ -1602,7 +1620,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       <button
                         type="button"
                         onClick={() => {
-                          const includedIds = RECORDING_OPTIONS.filter((o) => o.price === 0).map((o) => o.id);
+                          const includedIds = materials.filter((o) => o.price === 0).map((o) => o.id);
                           setSelectedOptions((prev) => Array.from(new Set([...prev, ...includedIds])));
                         }}
                         className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#00FF41]/15 text-[#00FF41] border border-[#00FF41]/30 hover:bg-[#00FF41]/25 transition cursor-pointer"
@@ -1614,11 +1632,11 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       <button
                         type="button"
                         onClick={() => {
-                          const comboRock = ['pro_tools', 'microfone', 'placa_audio', 'monitores_tomato', 'guitarra_ibanez', 'baixo_5cordas', 'bateria_acustica', 'voz_principal'];
+                          const comboRock = ['eq-guitarras', 'eq-baixos', 'eq-bateria', 'eq-violino'].filter((id) => materials.some((m) => m.id === id));
                           setSelectedOptions(comboRock);
                         }}
                         className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/25 transition cursor-pointer"
-                        title="Guitarra Ibanez + Baixo 5C + Bateria + Voz"
+                        title="Guitarra + Baixo + Bateria + Violino"
                       >
                         + Combo Banda
                       </button>
@@ -1626,11 +1644,11 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                       <button
                         type="button"
                         onClick={() => {
-                          const comboForro = ['pro_tools', 'microfone', 'placa_audio', 'monitores_tomato', 'sanfona_todeschini', 'violao_aco', 'baixo_5cordas', 'percussao_completa', 'voz_principal'];
+                          const comboForro = ['eq-sanfona', 'eq-violoes', 'eq-baixos', 'eq-percussao'].filter((id) => materials.some((m) => m.id === id));
                           setSelectedOptions(comboForro);
                         }}
                         className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
-                        title="Sanfona Todeschini + Violão Aço + Baixo + Percussão + Voz"
+                        title="Sanfona + Violão + Baixo + Percussão"
                       >
                         + Combo Forró/Sertanejo
                       </button>
@@ -1651,16 +1669,16 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                   <div className="flex flex-wrap items-center gap-1.5">
                     {[
                       { id: 'todos', label: t('booking_category_all') },
-                      { id: 'Inclusos', label: '🛡️ ' + t('booking_category_included') },
-                      { id: 'Guitarras & Baixos', label: '🎸 ' + t('booking_category_guitars_basses') },
-                      { id: 'Violões & Sanfona', label: '🪕 ' + t('booking_category_violoes_sanfona') },
-                      { id: 'Bateria & Percussão', label: '🥁 ' + t('booking_category_battery_percussion') },
-                      { id: 'Teclados & Cordas', label: '🎹 ' + t('booking_category_keyboards_strings') },
-                      { id: 'Vocais', label: '🎙️ ' + t('booking_category_vocals') },
-                      { id: 'Edição Pro-Tools', label: '🎚️ ' + t('booking_category_protools_editing') },
+                      ...materials
+                        .filter((o) => o.categoryGroup)
+                        .map((o) => o.categoryGroup)
+                        .filter((cat, i, arr) => arr.indexOf(cat) === i)
+                        .map((cat) => ({ id: cat, label: cat })),
                     ].map((cat) => {
                       const isActive = instrumentCategoryFilter === cat.id;
-                      const countInCat = RECORDING_OPTIONS.filter((o) => o.categoryGroup && (cat.id === 'todos' || o.categoryGroup === cat.id)).length;
+                      const countInCat = cat.id === 'todos'
+                        ? materials.length
+                        : materials.filter((o) => o.categoryGroup === cat.id).length;
                       return (
                         <button
                           key={cat.id}
@@ -1685,8 +1703,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
 
                   {/* Instruments Grid List */}
                   {(() => {
-                    // Filter options with categoryGroup (to prevent duplicate legacy aliases)
-                    const validOptions = RECORDING_OPTIONS.filter((o) => Boolean(o.categoryGroup));
+                    const validOptions = materials.filter((o) => Boolean(o.categoryGroup));
                     const filteredOptions = validOptions.filter((o) => {
                       const matchesCategory = instrumentCategoryFilter === 'todos' || o.categoryGroup === instrumentCategoryFilter;
                       const matchesSearch = !instrumentSearch.trim() ||
@@ -1865,7 +1882,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
 
                 {/* 7. Estimated Price & PIX Breakdown Box */}
                 {(() => {
-                  const optSum = selectedOptions.reduce((acc, optId) => acc + (RECORDING_OPTIONS.find((o) => o.id === optId)?.price || 0), 0);
+                  const optSum = selectedOptions.reduce((acc, optId) => acc + (materialById(optId)?.price || 0), 0);
                   const unitPrice = (selectedService?.basePrice || 0) + optSum;
                   const totalSum = unitPrice * tracksCount;
                   const signal50 = Math.round((totalSum / 2) * 100) / 100;
@@ -1885,7 +1902,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                           </div>
                           <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
                             {selectedOptions.map((optId) => {
-                              const opt = RECORDING_OPTIONS.find((o) => o.id === optId);
+                              const opt = materialById(optId);
                               if (!opt) return null;
                               return (
                                 <span key={opt.id} className="text-[10px] bg-slate-900 text-emerald-300 px-2 py-0.5 rounded-md border border-slate-800 flex items-center gap-1">
@@ -3264,12 +3281,12 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
             preferredDate: selectedDate,
             startTime: selectedTime,
             totalAmount: (() => {
-              const optSum = selectedOptions.reduce((acc, optId) => acc + (RECORDING_OPTIONS.find((o) => o.id === optId)?.price || 0), 0);
+              const optSum = selectedOptions.reduce((acc, optId) => acc + (materialById(optId)?.price || 0), 0);
               return ((selectedService?.basePrice || 0) + optSum) * tracksCount;
             })(),
             discountAmount: 0,
             finalAmount: (() => {
-              const optSum = selectedOptions.reduce((acc, optId) => acc + (RECORDING_OPTIONS.find((o) => o.id === optId)?.price || 0), 0);
+              const optSum = selectedOptions.reduce((acc, optId) => acc + (materialById(optId)?.price || 0), 0);
               return ((selectedService?.basePrice || 0) + optSum) * tracksCount;
             })(),
             paymentPlan,
