@@ -644,7 +644,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
               }`}
             >
               <span className="text-amber-400 font-bold">⭐</span>
-              <span>Depoimentos & Notas</span>
+              <span>Depoimentos</span>
             </button>
 
             <button

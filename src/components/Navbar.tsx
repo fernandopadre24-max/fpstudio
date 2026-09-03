@@ -203,7 +203,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const studioNavItems: NavItem[] = [
     { id: 'agenda', label: language === 'en' ? 'Bookings & Orders' : 'Agendamentos', icon: <Calendar className="w-3.5 h-3.5" /> },
     { id: 'client_reports', label: language === 'en' ? 'Clients' : 'Clientes', icon: <Users className="w-3.5 h-3.5" /> },
-    { id: 'reviews', label: language === 'en' ? 'Reviews Moderation' : 'Avaliações', icon: <Star className="w-3.5 h-3.5 text-amber-400" /> },
     { id: 'financials', label: language === 'en' ? 'Finances' : 'Financeiro', icon: <DollarSign className="w-3.5 h-3.5" /> },
     { id: 'ai_assistant', label: language === 'en' ? 'AI Assistant' : 'Assistente IA', icon: <Bot className="w-3.5 h-3.5" /> },
     { id: 'chat_budget', label: language === 'en' ? 'Chat & Quotes' : 'Chat & Orçamentos', icon: <MessageSquare className="w-3.5 h-3.5" /> },
@@ -373,7 +372,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {activeStaffUser?.name || 'Fernando Padre'}
                   </span>
                   <span className="text-[10px] text-black bg-sky-400 font-black px-1.5 py-0.2 rounded group-hover:scale-105 transition">
-                    ALTERAR DADOS ⚙️
+                    DADOS ADM ⚙️
                   </span>
                 </button>
 
