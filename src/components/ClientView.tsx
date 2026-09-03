@@ -1670,15 +1670,15 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     {[
                       { id: 'todos', label: t('booking_category_all') },
                       ...materials
-                        .filter((o) => o.categoryGroup)
+                        .filter((o) => o.categoryGroup && o.price > 0)
                         .map((o) => o.categoryGroup)
                         .filter((cat, i, arr) => arr.indexOf(cat) === i)
                         .map((cat) => ({ id: cat, label: cat })),
                     ].map((cat) => {
                       const isActive = instrumentCategoryFilter === cat.id;
                       const countInCat = cat.id === 'todos'
-                        ? materials.length
-                        : materials.filter((o) => o.categoryGroup === cat.id).length;
+                        ? materials.filter((o) => o.price > 0).length
+                        : materials.filter((o) => o.categoryGroup === cat.id && o.price > 0).length;
                       return (
                         <button
                           key={cat.id}
@@ -1703,7 +1703,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
 
                   {/* Instruments Grid List */}
                   {(() => {
-                    const validOptions = materials.filter((o) => Boolean(o.categoryGroup));
+                    const validOptions = materials.filter((o) => Boolean(o.categoryGroup) && o.price > 0);
                     const filteredOptions = validOptions.filter((o) => {
                       const matchesCategory = instrumentCategoryFilter === 'todos' || o.categoryGroup === instrumentCategoryFilter;
                       const matchesSearch = !instrumentSearch.trim() ||
