@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { useCustomization } from '../context/CustomizationContext';
+import { CreditCardModal } from './CreditCardModal';
+import { PaymentMethod, CardBrand } from '../types';
 import {
   Calendar,
   Clock,
@@ -134,6 +136,8 @@ export const ClientView: React.FC<ClientViewProps> = ({
   const [referenceTracks, setReferenceTracks] = useState<{ name: string; dataUrl: string }[]>([]);
   const referenceTrackInputRef = React.useRef<HTMLInputElement>(null);
   const [paymentPlan, setPaymentPlan] = useState<'sinal_50' | 'integral_100'>('sinal_50');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PIX');
+  const [showCreditCardModal, setShowCreditCardModal] = useState(false);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState<boolean>(false);
   const [bookingFormError, setBookingFormError] = useState<string>('');
 
@@ -552,6 +556,12 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
     }
     if (!selectedTime) {
       setBookingFormError('Por favor, selecione o horário do agendamento.');
+      return;
+    }
+
+    // If credit card payment method is selected, open the credit card modal
+    if (paymentMethod === 'CREDIT_CARD') {
+      setShowCreditCardModal(true);
       return;
     }
 
@@ -1759,8 +1769,51 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                   })()}
                 </div>
 
-                {/* 6. Payment Plan Selection */}
+                {/* 6. Payment Method Selection */}
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {t('payment_method_label')}:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('PIX')}
+                      className={`p-3 rounded-xl text-left border transition ${
+                        paymentMethod === 'PIX'
+                          ? 'bg-[#00FF41]/10 border-[#00FF41] text-white shadow-[0_0_15px_rgba(0,255,65,0.15)]'
+                          : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📱</span>
+                        <div>
+                          <p className="text-xs font-black">{t('payment_method_pix')}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{t('payment_method_pix_desc')}</p>
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('CREDIT_CARD')}
+                      className={`p-3 rounded-xl text-left border transition ${
+                        paymentMethod === 'CREDIT_CARD'
+                          ? 'bg-indigo-500/10 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.15)]'
+                          : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">💳</span>
+                        <div>
+                          <p className="text-xs font-black">{t('payment_method_credit_card')}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{t('payment_method_credit_card_desc')}</p>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 6b. Payment Plan Selection (PIX only) */}
+                {paymentMethod === 'PIX' && (<div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     {t('booking_label_payment_plan')}:
                   </label>
@@ -1808,6 +1861,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     </button>
                   </div>
                 </div>
+                )}
 
                 {/* 7. Estimated Price & PIX Breakdown Box */}
                 {(() => {
@@ -3190,6 +3244,47 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
             setActivePixModalBooking(null);
           }}
           onSendReceipt={handleSendReceiptFromModal}
+        />
+      )}
+
+      {/* Credit Card Payment Modal */}
+      {showCreditCardModal && selectedService && (
+        <CreditCardModal
+          booking={{
+            id: `cc-${Date.now()}`,
+            clientId: activeClient?.id || '',
+            clientName: activeClient?.name || bookingClientName,
+            clientEmail: activeClient?.email || bookingClientEmail || '',
+            clientPhone: activeClient?.phone || bookingClientPhone || '',
+            bandOrArtistName: activeClient?.bandOrArtistName || bookingBandName || '',
+            serviceId: selectedService.id,
+            serviceName: selectedService.name,
+            roomId: selectedRoom?.id || 'fpstudio',
+            roomName: selectedRoom?.name || 'FPStudio',
+            preferredDate: selectedDate,
+            startTime: selectedTime,
+            totalAmount: (() => {
+              const optSum = selectedOptions.reduce((acc, optId) => acc + (RECORDING_OPTIONS.find((o) => o.id === optId)?.price || 0), 0);
+              return ((selectedService?.basePrice || 0) + optSum) * tracksCount;
+            })(),
+            discountAmount: 0,
+            finalAmount: (() => {
+              const optSum = selectedOptions.reduce((acc, optId) => acc + (RECORDING_OPTIONS.find((o) => o.id === optId)?.price || 0), 0);
+              return ((selectedService?.basePrice || 0) + optSum) * tracksCount;
+            })(),
+            paymentPlan,
+            paymentMethod: 'CREDIT_CARD',
+            status: 'pendente_orcamento',
+            notes: bookingNotes,
+            selectedInstruments: selectedOptions,
+            durationHours: selectedService?.durationHours || 2,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }}
+          onClose={() => setShowCreditCardModal(false)}
+          onConfirmPayment={(brand, lastFour, inst, holder) => {
+            setShowCreditCardModal(false);
+          }}
         />
       )}
 

@@ -81,6 +81,8 @@ export interface BookingRequest {
   discountAmount: number;
   finalAmount: number;
   paymentPlan?: string;
+  paymentMethod?: PaymentMethod;
+  creditCardInfo?: CreditCardPaymentInfo;
   createdAt: string;
   updatedAt: string;
 }
@@ -99,6 +101,35 @@ export interface PixQuote {
   expiresAt: string;
   notes?: string;
   status: 'pending' | 'receipt_attached' | 'confirmed' | 'expired' | 'enviado';
+  isSignalPayment?: boolean;
+  signalAmount?: number;
+  paymentPlan?: string;
+}
+
+export type PaymentMethod = 'PIX' | 'CREDIT_CARD';
+
+export type CardBrand = 'visa' | 'mastercard' | 'elo' | 'amex' | 'discover' | 'diners' | 'jcb' | 'hiper';
+
+export interface CreditCardPaymentInfo {
+  cardBrand: CardBrand;
+  cardLastFour: string;
+  installments: number;
+  holderName: string;
+}
+
+export interface CreditCardQuote {
+  id: string;
+  bookingId: string;
+  clientId: string;
+  clientName: string;
+  serviceName: string;
+  totalAmount: number;
+  installments: number;
+  installmentAmount: number;
+  cardBrand: CardBrand;
+  notes?: string;
+  status: 'pending' | 'confirmed' | 'refused' | 'expired';
+  paymentMethod: 'CREDIT_CARD';
   isSignalPayment?: boolean;
   signalAmount?: number;
   paymentPlan?: string;
@@ -123,6 +154,7 @@ export interface ChatMessage {
   type: ChatMessageType;
   attachment?: ChatAttachment;
   quotePayload?: PixQuote;
+  creditCardQuotePayload?: CreditCardQuote;
   timestamp: string;
 }
 
@@ -145,7 +177,7 @@ export interface TransactionRecord {
   clientName: string;
   serviceName: string;
   amount: number;
-  paymentMethod: 'PIX';
+  paymentMethod: PaymentMethod;
   confirmedAt: string;
   month: string; // YYYY-MM
   status: 'confirmado' | 'estornado' | 'cancelado';

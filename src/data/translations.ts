@@ -277,6 +277,43 @@ export interface Translations {
   booking_quote_notes_official: string;
   booking_submitted_success: string;
 
+  // Payment Method
+  payment_method_label: string;
+  payment_method_pix: string;
+  payment_method_credit_card: string;
+  payment_method_pix_desc: string;
+  payment_method_credit_card_desc: string;
+  credit_card_select_brand: string;
+  credit_card_brand_visa: string;
+  credit_card_brand_mastercard: string;
+  credit_card_brand_elo: string;
+  credit_card_brand_amex: string;
+  credit_card_brand_discover: string;
+  credit_card_brand_diners: string;
+  credit_card_brand_jcb: string;
+  credit_card_brand_hiper: string;
+  credit_card_installments: string;
+  credit_card_installment_singular: string;
+  credit_card_installment_plural: string;
+  credit_card_holder_name: string;
+  credit_card_holder_placeholder: string;
+  credit_card_number: string;
+  credit_card_number_placeholder: string;
+  credit_card_expiry: string;
+  credit_card_expiry_placeholder: string;
+  credit_card_cvv: string;
+  credit_card_cvv_placeholder: string;
+  credit_card_installment_value: string;
+  credit_card_total_value: string;
+  credit_card_confirm_payment: string;
+  credit_card_processing: string;
+  credit_card_success_title: string;
+  credit_card_success_message: string;
+  credit_card_error_title: string;
+  credit_card_error_message: string;
+  credit_card_secure_notice: string;
+  credit_card_supported_brands: string;
+
   // Bookings
   bookings_page_heading: string;
   bookings_page_subtitle: string;
@@ -1267,6 +1304,43 @@ export const translations: Record<Language, Translations> = {
     booking_quote_notes_official: 'ORÇAMENTO OFICIAL',
     booking_submitted_success: 'Agendamento enviado com sucesso!',
 
+    // Payment Method
+    payment_method_label: 'Forma de pagamento',
+    payment_method_pix: 'Pix',
+    payment_method_credit_card: 'Cartão de Crédito',
+    payment_method_pix_desc: 'Pagamento instantâneo via Pix',
+    payment_method_credit_card_desc: 'Parcele em até 12x no cartão',
+    credit_card_select_brand: 'Selecione a bandeira do cartão',
+    credit_card_brand_visa: 'Visa',
+    credit_card_brand_mastercard: 'Mastercard',
+    credit_card_brand_elo: 'Elo',
+    credit_card_brand_amex: 'American Express',
+    credit_card_brand_discover: 'Discover',
+    credit_card_brand_diners: 'Diners Club',
+    credit_card_brand_jcb: 'JCB',
+    credit_card_brand_hiper: 'Hiper',
+    credit_card_installments: 'Parcelas',
+    credit_card_installment_singular: 'parcela',
+    credit_card_installment_plural: 'parcelas',
+    credit_card_holder_name: 'Nome no cartão',
+    credit_card_holder_placeholder: 'Como está impresso no cartão',
+    credit_card_number: 'Número do cartão',
+    credit_card_number_placeholder: '0000 0000 0000 0000',
+    credit_card_expiry: 'Validade',
+    credit_card_expiry_placeholder: 'MM/AA',
+    credit_card_cvv: 'CVV',
+    credit_card_cvv_placeholder: '000',
+    credit_card_installment_value: 'Valor da parcela',
+    credit_card_total_value: 'Valor total',
+    credit_card_confirm_payment: 'Confirmar pagamento',
+    credit_card_processing: 'Processando pagamento...',
+    credit_card_success_title: 'Pagamento aprovado!',
+    credit_card_success_message: 'Seu pagamento foi processado com sucesso.',
+    credit_card_error_title: 'Pagamento não autorizado',
+    credit_card_error_message: 'Houve um problema ao processar seu pagamento. Tente novamente.',
+    credit_card_secure_notice: 'Pagamento seguro e criptografado',
+    credit_card_supported_brands: 'Bandeiras aceitas',
+
     // Bookings
     bookings_page_heading: 'Meus Agendamentos',
     bookings_page_subtitle: 'Acompanhe todos os seus agendamentos e pedidos.',
@@ -2254,6 +2328,43 @@ export const translations: Record<Language, Translations> = {
     booking_quote_notes_signal: 'DEPOSIT TO CONFIRM',
     booking_quote_notes_official: 'OFFICIAL BUDGET',
     booking_submitted_success: 'Booking submitted successfully!',
+
+    // Payment Method
+    payment_method_label: 'Payment method',
+    payment_method_pix: 'Pix',
+    payment_method_credit_card: 'Credit Card',
+    payment_method_pix_desc: 'Instant payment via Pix',
+    payment_method_credit_card_desc: 'Split into up to 12 installments',
+    credit_card_select_brand: 'Select your card brand',
+    credit_card_brand_visa: 'Visa',
+    credit_card_brand_mastercard: 'Mastercard',
+    credit_card_brand_elo: 'Elo',
+    credit_card_brand_amex: 'American Express',
+    credit_card_brand_discover: 'Discover',
+    credit_card_brand_diners: 'Diners Club',
+    credit_card_brand_jcb: 'JCB',
+    credit_card_brand_hiper: 'Hiper',
+    credit_card_installments: 'Installments',
+    credit_card_installment_singular: 'installment',
+    credit_card_installment_plural: 'installments',
+    credit_card_holder_name: 'Cardholder name',
+    credit_card_holder_placeholder: 'As printed on the card',
+    credit_card_number: 'Card number',
+    credit_card_number_placeholder: '0000 0000 0000 0000',
+    credit_card_expiry: 'Expiration',
+    credit_card_expiry_placeholder: 'MM/YY',
+    credit_card_cvv: 'CVV',
+    credit_card_cvv_placeholder: '000',
+    credit_card_installment_value: 'Installment value',
+    credit_card_total_value: 'Total value',
+    credit_card_confirm_payment: 'Confirm payment',
+    credit_card_processing: 'Processing payment...',
+    credit_card_success_title: 'Payment approved!',
+    credit_card_success_message: 'Your payment was processed successfully.',
+    credit_card_error_title: 'Payment not authorized',
+    credit_card_error_message: 'There was a problem processing your payment. Please try again.',
+    credit_card_secure_notice: 'Secure and encrypted payment',
+    credit_card_supported_brands: 'Accepted brands',
 
     // Bookings
     bookings_page_heading: 'My Bookings',
