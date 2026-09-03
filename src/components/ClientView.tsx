@@ -216,9 +216,9 @@ export const ClientView: React.FC<ClientViewProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/i)) {
-      alert('Por favor, envie um arquivo de áudio válido (MP3, WAV, M4A, OGG ou FLAC).');
-      return;
+if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/i)) {
+              alert(t('booking_alert_invalid_audio'));
+              return;
     }
 
     const reader = new FileReader();
@@ -242,19 +242,19 @@ export const ClientView: React.FC<ClientViewProps> = ({
     const toAdd = Array.from(files).slice(0, remaining);
 
     if (toAdd.length === 0) {
-      alert(`Limite de ${tracksCount} ${tracksCount === 1 ? 'trilha' : 'trilhas'} de referência atingido.`);
+      alert(t('booking_alert_track_limit_reached'));
       e.target.value = '';
       return;
     }
 
-    const existingNames = new Set(referenceTracks.map((t) => t.name.toLowerCase()));
+    const existingNames = new Set(referenceTracks.map((track) => track.name.toLowerCase()));
     toAdd.forEach((file) => {
       if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/i)) {
-        alert('Por favor, envie apenas arquivos de áudio válidos (MP3, WAV, M4A, OGG ou FLAC).');
+        alert(t('booking_alert_valid_audio_only'));
         return;
       }
       if (existingNames.has(file.name.toLowerCase())) {
-        alert(`O arquivo "${file.name}" já foi adicionado.`);
+        alert(t('booking_alert_duplicate_track'));
         return;
       }
       const reader = new FileReader();
@@ -853,10 +853,10 @@ export const ClientView: React.FC<ClientViewProps> = ({
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[#00FF41] text-xs font-black uppercase tracking-wider">
-                      (Produção Musical)
+                      {t('hero_producer_role')}
                     </span>
                     <span className="text-zinc-400 text-xs font-bold">
-                      • Salvador - BA
+                      • {t('hero_location')}
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight mt-1 leading-tight">
@@ -866,7 +866,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
               </div>
 
               <p className="text-sm sm:text-base text-zinc-300 font-medium leading-relaxed max-w-2xl">
-                Sessões de gravação de voz e instrumentos, edição de áudio, afinação vocal (Melodyne) e mixagem em um ambiente intimista acusticamente tratado em Salvador.
+                {t('hero_subtitle')}
               </p>
 
               {/* Action Buttons */}
@@ -875,7 +875,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
                   onClick={handleGoToServicos}
                   className="px-6 py-3.5 rounded-full bg-[#00FF41] hover:bg-[#00e038] text-black font-black text-xs sm:text-sm shadow-[0_0_25px_rgba(0,255,65,0.4)] hover:scale-105 transition flex items-center gap-2 cursor-pointer"
                 >
-                  <span>⚡ SIMULAR ORÇAMENTO POR INSTRUMENTOS</span>
+                  <span>⚡ {t('hero_btn_instrument_budget')}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
 
@@ -883,7 +883,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
                   onClick={handleGoToServicos}
                   className="px-6 py-3.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs sm:text-sm border border-zinc-700/80 transition flex items-center gap-2 cursor-pointer"
                 >
-                  <span>👁️ VER HORÁRIOS & GRADE</span>
+                  <span>👁️ {t('hero_btn_view_schedule')}</span>
                 </button>
 
                 <button
@@ -891,7 +891,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
                   className="px-4 py-3.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs border border-zinc-800 transition flex items-center gap-2 cursor-pointer"
                 >
                   <MapPin className="w-4 h-4 text-[#00FF41]" />
-                  <span>Ver GPS / Mapa</span>
+                  <span>{t('hero_btn_view_map')}</span>
                 </button>
               </div>
 
@@ -902,8 +902,8 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-white">FERNANDO PADRE</p>
-                    <p className="text-[10px] text-zinc-400 font-semibold">Produtor & Engenheiro</p>
+                    <p className="text-xs font-black text-white">{t('hero_producer_name')}</p>
+                    <p className="text-[10px] text-zinc-400 font-semibold">{t('hero_producer_role')}</p>
                   </div>
                 </div>
 
@@ -912,8 +912,8 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     <Sliders className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-white">AFINAÇÃO VOCAL</p>
-                    <p className="text-[10px] text-zinc-400 font-semibold">Melodyne / Auto-Tune</p>
+                    <p className="text-xs font-black text-white">{t('hero_feature_vocal_tuning')}</p>
+                    <p className="text-[10px] text-zinc-400 font-semibold">{t('hero_feature_tuning_tools')}</p>
                   </div>
                 </div>
 
@@ -922,8 +922,8 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     <Music2 className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-white">MIX & MASTER</p>
-                    <p className="text-[10px] text-zinc-400 font-semibold">Pronto p/ Streaming</p>
+                    <p className="text-xs font-black text-white">{t('hero_feature_mix_master')}</p>
+                    <p className="text-[10px] text-zinc-400 font-semibold">{t('hero_feature_streaming_ready')}</p>
                   </div>
                 </div>
               </div>
@@ -935,12 +935,12 @@ export const ClientView: React.FC<ClientViewProps> = ({
                 <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
                   <div>
                     <span className="text-[10px] uppercase font-black tracking-wider text-[#00FF41]">
-                      PRODUÇÃO & GRAVAÇÃO
+                      {t('hero_room_section_label')}
                     </span>
-                    <h3 className="text-base font-black text-white">FPStudio Salvador</h3>
+                    <h3 className="text-base font-black text-white">{t('hero_studio_name_heading')} {t('hero_location')}</h3>
                   </div>
                   <span className="px-2.5 py-1 rounded-full bg-[#00FF41]/15 text-[#00FF41] border border-[#00FF41]/30 text-[10px] font-black uppercase tracking-wider">
-                    DISPONÍVEL
+                    {t('hero_available_badge')}
                   </span>
                 </div>
 
@@ -953,13 +953,13 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#00FF41]" />
                       <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-[#00FF41] transition">
-                        PRO-TOOLS
+                        {t('hero_feature_protools')}
                       </h4>
                     </div>
-                    <p className="text-[11px] text-zinc-400">DAW Profissional de Gravação e Mixagem</p>
+                    <p className="text-[11px] text-zinc-400">{t('hero_feature_protools_desc')}</p>
                   </div>
                   <span className="px-2.5 py-1 rounded-full bg-[#00FF41]/20 text-[#00FF41] font-black text-[11px] border border-[#00FF41]/40 shrink-0">
-                    INCLUSO
+                    {t('hero_included_badge')}
                   </span>
                 </div>
 
@@ -972,13 +972,13 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#00FF41]" />
                       <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-[#00FF41] transition">
-                        MICROFONE
+                        {t('hero_feature_microphone')}
                       </h4>
                     </div>
-                    <p className="text-[11px] text-zinc-400">Microfonação Kadosh 412 Alta Performance</p>
+                    <p className="text-[11px] text-zinc-400">{t('hero_feature_microphone_desc')}</p>
                   </div>
                   <span className="px-2.5 py-1 rounded-full bg-[#00FF41]/20 text-[#00FF41] font-black text-[11px] border border-[#00FF41]/40 shrink-0">
-                    INCLUSO
+                    {t('hero_included_badge_2')}
                   </span>
                 </div>
 
@@ -991,24 +991,24 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#00FF41]" />
                       <h4 className="text-xs sm:text-sm font-black text-white group-hover:text-[#00FF41] transition">
-                        PLACA DE ÁUDIO
+                        {t('hero_feature_audio_interface')}
                       </h4>
                     </div>
-                    <p className="text-[11px] text-zinc-400">Interface de Áudio M-Audio Pro HD</p>
+                    <p className="text-[11px] text-zinc-400">{t('hero_feature_audio_interface_desc')}</p>
                   </div>
                   <span className="px-2.5 py-1 rounded-full bg-[#00FF41]/20 text-[#00FF41] font-black text-[11px] border border-[#00FF41]/40 shrink-0">
-                    INCLUSO
+                    {t('hero_included_badge_3')}
                   </span>
                 </div>
 
                 {/* Bottom link to Chat */}
                 <div className="pt-2 flex items-center justify-between text-xs font-bold text-zinc-400 border-t border-zinc-800/80">
-                  <span>DÚVIDAS SOBRE SUA PRODUÇÃO?</span>
+                  <span>{t('hero_doubts_text')}</span>
                   <button
                     onClick={() => setActiveTab('chat')}
                     className="text-[#00FF41] hover:underline font-black flex items-center gap-1 cursor-pointer"
                   >
-                    <span>CHAT DO ESTÚDIO</span>
+                    <span>{t('hero_studio_chat_link')}</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -1231,9 +1231,9 @@ export const ClientView: React.FC<ClientViewProps> = ({
               <div className="bg-slate-900 text-slate-200 p-4 rounded-2xl border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black text-[#00FF41] uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-[#00FF41]" /> Instrumentos & Setup FPStudio
+                    <Sparkles className="w-4 h-4 text-[#00FF41]" /> {t('booking_equipment_heading')}
                   </h4>
-                  <span className="text-[10px] bg-[#00FF41]/20 text-[#00FF41] px-2 py-0.5 rounded font-bold border border-[#00FF41]/30">Gravação & Edição</span>
+                  <span className="text-[10px] bg-[#00FF41]/20 text-[#00FF41] px-2 py-0.5 rounded font-bold border border-[#00FF41]/30">{t('booking_recording_editing_badge')}</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
                   {FPSTUDIO_EQUIPMENT.map((eq, i) => (
@@ -1255,13 +1255,13 @@ export const ClientView: React.FC<ClientViewProps> = ({
                 <div>
                   <div className="flex items-center gap-1.5 text-[10px] text-[#00FF41] font-bold uppercase tracking-wider">
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>Serviço Selecionado</span>
+                    <span>{t('booking_selected_service_label')}</span>
                   </div>
-                  <h3 className="font-bold text-base text-white leading-tight mt-0.5">{selectedService?.name || 'Selecione um serviço'}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">FPStudio Salvador • Sessão Profissional ({selectedService?.durationHours || 2}h)</p>
+                  <h3 className="font-bold text-base text-white leading-tight mt-0.5">{selectedService?.name || t('booking_select_service_default')}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{t('hero_studio_name_heading')} {t('hero_location')} • {t('booking_session_info')} ({selectedService?.durationHours || 2}h)</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block font-medium">Preço Base</span>
+                  <span className="text-[10px] text-slate-400 block font-medium">{t('booking_base_price_label')}</span>
                   <p className="text-xl font-black text-[#00FF41]">{formatBRL(selectedService?.basePrice || 0)}</p>
                 </div>
               </div>
@@ -1274,16 +1274,16 @@ export const ClientView: React.FC<ClientViewProps> = ({
                     <div className="flex items-center gap-1.5">
                       <UserCheck className="w-4 h-4 text-[#00FF41]" />
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                        Identificação do Artista / Cliente
+                        {t('booking_client_id_section')}
                       </span>
                     </div>
                     {isClientLoggedIn ? (
                       <span className="text-[10px] bg-[#00FF41]/15 text-[#00FF41] border border-[#00FF41]/30 px-2 py-0.5 rounded-full font-bold">
-                        Perfil Conectado
+                        {t('booking_connected_profile_badge')}
                       </span>
                     ) : (
                       <span className="text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">
-                        Cadastro Obrigatório
+                        {t('booking_registration_required_badge')}
                       </span>
                     )}
                   </div>
@@ -1303,7 +1303,7 @@ export const ClientView: React.FC<ClientViewProps> = ({
                         onClick={() => setActiveTab('profile')}
                         className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition"
                       >
-                        Meu Cadastro (CPF)
+                        {t('booking_my_registration_btn')}
                       </button>
                     </div>
                   ) : (
@@ -1311,9 +1311,9 @@ export const ClientView: React.FC<ClientViewProps> = ({
                       <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-300 text-[11px] flex items-start gap-2">
                         <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-bold text-amber-200">Login ou Cadastro Obrigatório</p>
+                          <p className="font-bold text-amber-200">{t('booking_login_required_heading')}</p>
                           <p className="text-amber-300/80 text-[10px] mt-0.5">
-                            Para confirmar a data e gerar seu orçamento oficial com chave PIX FPStudio, faça seu cadastro em 1 minuto.
+                            {t('booking_registration_instructions')}
                           </p>
                         </div>
                       </div>
