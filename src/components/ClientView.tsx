@@ -1985,17 +1985,17 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                   {isSubmittingBooking ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>ENVIANDO AGENDAMENTO & GERANDO PIX...</span>
+                      <span>{t('booking_btn_submitting')}</span>
                     </>
                   ) : isClientLoggedIn ? (
                     <>
                       <Calendar className="w-5 h-5" />
-                      <span>SOLICITAR AGENDAMENTO E GERAR ORÇAMENTO PIX</span>
+                      <span>{t('btn_request_booking').toUpperCase()}</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-5 h-5" />
-                      <span>CADASTRAR-SE PARA SOLICITAR AGENDAMENTO E GERAR PIX</span>
+                      <span>{t('btn_register_to_book').toUpperCase()}</span>
                     </>
                   )}
                 </button>

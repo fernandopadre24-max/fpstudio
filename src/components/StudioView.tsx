@@ -884,6 +884,11 @@ export const StudioView: React.FC<StudioViewProps> = ({
 
                         <p className="text-xs font-medium text-slate-400">
                           {b.serviceName}
+                          {b.paymentMethod && (
+                            <span className="ml-1.5 text-[10px]">
+                              {b.paymentMethod === 'CREDIT_CARD' ? '💳' : '📱'}
+                            </span>
+                          )}
                         </p>
 
                         <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
@@ -1413,6 +1418,16 @@ export const StudioView: React.FC<StudioViewProps> = ({
                           <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
                             {b.serviceName}
                           </p>
+
+                          {b.paymentMethod && (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              b.paymentMethod === 'CREDIT_CARD'
+                                ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300'
+                                : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300'
+                            }`}>
+                              {b.paymentMethod === 'CREDIT_CARD' ? '💳 Cartão de Crédito' : '📱 Pix'}
+                            </span>
+                          )}
 
                           <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                             <span className="flex items-center gap-1">
@@ -2069,6 +2084,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                         <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-bold text-[10px]">
                           <th className="py-3 px-2">Data</th>
                           <th className="py-3 px-2">Serviço</th>
+                          <th className="py-3 px-2">Pagamento</th>
                           <th className="py-3 px-2">Sala</th>
                           <th className="py-3 px-2">Duração</th>
                       <th className="py-3 px-2">{t('financials_table_header_status')}</th>
@@ -2080,6 +2096,9 @@ export const StudioView: React.FC<StudioViewProps> = ({
                           <tr key={b.id}>
                             <td className="py-3 px-2 font-semibold">{formatDateBR(b.preferredDate)}</td>
                             <td className="py-3 px-2">{b.serviceName}</td>
+                            <td className="py-3 px-2">
+                              {b.paymentMethod === 'CREDIT_CARD' ? '💳 Cartão' : '📱 Pix'}
+                            </td>
                             <td className="py-3 px-2">{b.roomName}</td>
                             <td className="py-3 px-2">{b.durationHours}h ({b.startTime})</td>
                             <td className="py-3 px-2 font-bold text-emerald-500">{b.status}</td>
