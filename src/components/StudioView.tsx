@@ -756,7 +756,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
           <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 text-white p-4 rounded-2xl border border-emerald-900/50 shadow-lg relative overflow-hidden flex flex-col justify-between">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400">
-                Faturamento Confirmado
+                {t('kpi_confirmed_revenue')}
               </span>
               <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl">
                 <CheckCircle2 className="w-4 h-4" />
@@ -841,7 +841,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                     onChange={(e) => setBookingFilterStatus(e.target.value)}
                     className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg px-2 py-1 text-[11px] font-semibold focus:outline-none"
                   >
-                    <option value="todos">Todos ({bookings.length})</option>
+                    <option value="todos">{t('chat_filter_all')} ({bookings.length})</option>
                     <option value="comprovante_enviado">Comprovante Enviado</option>
                     <option value="pendente_orcamento">Pendentes de Orçamento</option>
                     <option value="orcamento_enviado">Aguardando PIX</option>
@@ -878,7 +878,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                 : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
                             }`}
                           >
-                            {isPaid ? 'CONFIRMADO' : isReceiptSent ? 'COMPROVANTE!' : 'PENDENTE'}
+                            {isPaid ? t('chat_status_confirmed') : isReceiptSent ? 'COMPROVANTE!' : t('chat_status_pending')}
                           </span>
                         </div>
 
@@ -1079,7 +1079,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                         type="submit"
                         className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer"
                       >
-                        <Send className="w-4 h-4" /> Enviar
+                        <Send className="w-4 h-4" /> {t('chat_send_button')}
                       </button>
                     </form>
                   </>
@@ -1266,11 +1266,11 @@ export const StudioView: React.FC<StudioViewProps> = ({
               {/* Filter Pills */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
                 {[
-                  { id: 'todos', label: 'Todos' },
+                  { id: 'todos', label: t('agenda_filter_all') },
                   { id: 'pago_confirmado', label: 'Confirmados' },
                   { id: 'concluido', label: 'Concluídos (Baixa)' },
                   { id: 'pendente', label: 'Pendentes PIX' },
-                  { id: 'cancelado', label: 'Cancelados' },
+                  { id: 'cancelado', label: t('agenda_filter_cancelled') },
                 ].map((f) => (
                   <button
                     key={f.id}
@@ -1312,7 +1312,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                       className="px-2 py-1 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-lg cursor-pointer"
                       title="Limpar Data"
                     >
-                      Limpar
+                      {t('agenda_clear_date_button')}
                     </button>
                   )}
                 </div>
@@ -1405,8 +1405,8 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                 : isComprovante
                                 ? 'COMPROVANTE ANEXADO!'
                                 : isCancelado
-                                ? 'CANCELADO'
-                                : 'AGUARDANDO PIX'}
+                                ? t('agenda_status_cancelled')
+                                : t('agenda_status_waiting_pix')}
                             </span>
                           </div>
 
@@ -1526,9 +1526,9 @@ export const StudioView: React.FC<StudioViewProps> = ({
                             <option value="pendente_orcamento">Pendente Orçamento</option>
                             <option value="orcamento_enviado">Orçamento Enviado (PIX)</option>
                             <option value="comprovante_enviado">Comprovante Anexado</option>
-                            <option value="pago_confirmado">Pago & Confirmado</option>
+                            <option value="pago_confirmado">{t('agenda_status_option_paid_confirmed')}</option>
                             <option value="concluido">Concluído (Baixa Dada)</option>
-                            <option value="cancelado">Cancelado</option>
+                            <option value="cancelado">{t('agenda_status_option_cancelled')}</option>
                           </select>
                         </div>
 
@@ -1563,7 +1563,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   onClick={() => exportFinancialsPDF(financials, transactions)}
                   className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2"
                 >
-                  <Download className="w-4 h-4 text-emerald-400" /> Exportar PDF
+                  <Download className="w-4 h-4 text-emerald-400" /> {t('financials_export_pdf')}
                 </button>
 
                 <button
@@ -1579,7 +1579,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-lg space-y-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Faturamento Confirmado</span>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{t('financials_confirmed_revenue')}</span>
                 <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                   {formatBRL(totalConfirmedRevenue)}
                 </h3>
@@ -1684,7 +1684,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-bold text-[10px]">
-                      <th className="py-3 px-2">Data/Hora</th>
+                      <th className="py-3 px-2">{t('financials_table_header_datetime')}</th>
                       <th className="py-3 px-2">Cliente / Artista</th>
                       <th className="py-3 px-2">Serviço Prestado</th>
                       <th className="py-3 px-2">Forma</th>
@@ -1851,10 +1851,10 @@ export const StudioView: React.FC<StudioViewProps> = ({
                       <tr className="border-b border-zinc-800 text-zinc-400 uppercase font-bold text-[10px]">
                         <th className="py-3 px-3">Artista / Banda</th>
                         <th className="py-3 px-3">Contato & CPF</th>
-                        <th className="py-3 px-3">E-mail</th>
-                        <th className="py-3 px-3">Telefone</th>
-                        <th className="py-3 px-3 text-center">Sessões / Pedidos</th>
-                        <th className="py-3 px-3 text-right">Ação</th>
+                        <th className="py-3 px-3">{t('clients_table_header_email')}</th>
+                        <th className="py-3 px-3">{t('clients_table_header_phone')}</th>
+                        <th className="py-3 px-3 text-center">{t('clients_table_header_sessions_orders')}</th>
+                        <th className="py-3 px-3 text-right">{t('clients_table_header_action')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-900">
@@ -1892,14 +1892,14 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                   <span>{c.cpf}</span>
                                 </div>
                               ) : (
-                                <span className="text-[10px] text-zinc-500 italic">CPF não cadastrado</span>
+                                <span className="text-[10px] text-zinc-500 italic">{t('clients_cpf_not_registered')}</span>
                               )}
                             </td>
                             <td className="py-3 px-3 text-zinc-400 font-mono text-[11px]">{c.email}</td>
                             <td className="py-3 px-3 text-zinc-300">{c.phone || '(71) 99999-0000'}</td>
                             <td className="py-3 px-3 text-center">
                               <span className="px-2 py-0.5 rounded-full bg-zinc-800 text-[#00FF41] font-bold text-[10px]">
-                                {clientBookingsCount} {clientBookingsCount === 1 ? 'pedido' : 'pedidos'}
+                                {clientBookingsCount} {clientBookingsCount === 1 ? t('clients_order_singular') : t('clients_order_plural')}
                               </span>
                             </td>
                             <td className="py-3 px-3 text-right">
@@ -2071,7 +2071,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                           <th className="py-3 px-2">Serviço</th>
                           <th className="py-3 px-2">Sala</th>
                           <th className="py-3 px-2">Duração</th>
-                          <th className="py-3 px-2">Status</th>
+                      <th className="py-3 px-2">{t('financials_table_header_status')}</th>
                           <th className="py-3 px-2 text-right">Valor Final</th>
                         </tr>
                       </thead>
@@ -2972,7 +2972,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 {/* Telefone / WhatsApp */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
-                    Telefone / WhatsApp
+                    {t('create_user_label_phone_whatsapp')}
                   </label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -3042,7 +3042,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 {/* Cidade / Estado */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
-                    Cidade / Região
+                    {t('create_user_label_city_region')}
                   </label>
                   <div className="relative">
                     <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -3086,7 +3086,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   className="px-5 py-2.5 bg-[#00FF41] hover:bg-[#00e038] text-black text-xs font-black rounded-xl shadow-[0_0_20px_rgba(0,255,65,0.3)] transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 hover:scale-105 active:scale-95"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>{isSavingUser ? 'Salvando...' : 'Cadastrar Usuário'}</span>
+                  <span>{isSavingUser ? t('profile_btn_saving') : 'Cadastrar Usuário'}</span>
                 </button>
               </div>
             </form>
@@ -3130,7 +3130,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                 onClick={() => setShowConfirmClearUsersModal(false)}
                 className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer"
               >
-                Cancelar
+                {t('clear_users_cancel')}
               </button>
               <button
                 onClick={async () => {

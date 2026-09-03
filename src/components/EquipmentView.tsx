@@ -468,7 +468,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
             }`}
           >
             <Sliders className="w-4 h-4" />
-            <span>MATERIAL & INSTRUMENTOS</span>
+            <span>{t('section_material_e_instrumentos')}</span>
           </button>
 
           <button
@@ -527,7 +527,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
             {/* Right Top Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30 text-xs font-black uppercase tracking-wider">
               <Sliders className="w-4 h-4 text-[#00FF41]" />
-              TABELA DE GRAVAÇÃO & EDIÇÃO
+              {t('badge_tabela_gravacao_edicao')}
             </div>
           </div>
 
@@ -635,7 +635,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                   <div className="px-3.5 py-1.5 rounded-xl bg-black/90 border border-[#00FF41]/60 backdrop-blur-md shadow-xl flex items-center gap-1.5">
                     <span className="text-[10px] font-black uppercase text-zinc-400">VALOR:</span>
                     <span className="text-xs sm:text-sm font-black text-[#00FF41] tracking-tight">
-                      {item.price !== undefined && item.price > 0 ? formatBRL(item.price) : 'INCLUSO'}
+                      {item.price !== undefined && item.price > 0 ? formatBRL(item.price) : t('status_included')}
                     </span>
                   </div>
                 </div>
@@ -682,7 +682,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                   <div className="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80 flex items-center gap-2">
                     <Sliders className="w-3.5 h-3.5 text-[#00FF41] shrink-0" />
                     <span className="text-[11px] text-zinc-300 font-medium truncate">
-                      {item.priceDetails || (item.price && item.price > 0 ? 'Gravação + Edição inclusas' : 'Incluso na sessão')}
+                      {item.priceDetails || (item.price && item.price > 0 ? 'Gravação + Edição inclusas' : t('label_incluso_na_sessao'))}
                     </span>
                   </div>
                 </div>
@@ -1504,7 +1504,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 ) : (
                   <div className="h-32 w-full rounded-2xl bg-zinc-900/60 border border-zinc-800 flex flex-col items-center justify-center text-zinc-500 text-xs">
                     <ImageIcon className="w-8 h-8 mb-1 opacity-50" />
-                    <span>Nenhuma imagem selecionada</span>
+                    <span>{t('text_nenhuma_imagem_selecionada')}</span>
                   </div>
                 )}
 
@@ -1606,7 +1606,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                   }}
                   className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl transition cursor-pointer"
                 >
-                  Cancelar
+                  {t('button_cancelar')}
                 </button>
                 <button
                   type="submit"
@@ -1697,7 +1697,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 onClick={() => setSelectedServiceDetail(null)}
                 className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl transition cursor-pointer"
               >
-                Fechar
+                {t('button_fechar')}
               </button>
 
               {onNavigateToBooking && (
@@ -1742,7 +1742,7 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                 onClick={() => setServiceToDelete(null)}
                 className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold rounded-xl transition cursor-pointer"
               >
-                Cancelar
+                {t('button_cancelar')}
               </button>
               <button
                 onClick={handleDeleteServiceConfirm}
