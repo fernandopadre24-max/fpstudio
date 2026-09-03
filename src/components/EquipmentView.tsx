@@ -262,13 +262,19 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
       // Update existing
       const updated = equipmentList.map((item) =>
         item.id === editingItem.id
-          ? ({
-              ...item,
-              ...editingItem,
-              imageUrl: finalImageUrl,
-              price: editingItem.price !== undefined ? editingItem.price : (item.price || 0),
-              priceDetails: editingItem.priceDetails !== undefined ? editingItem.priceDetails : (item.priceDetails || ''),
-            } as StudioEquipmentItem)
+          ? (() => {
+              const isIncluded = (editingItem.price !== undefined ? editingItem.price : item.price || 0) === 0;
+              return {
+                ...item,
+                ...editingItem,
+                imageUrl: finalImageUrl,
+                price: editingItem.price !== undefined ? editingItem.price : (item.price || 0),
+                priceDetails: editingItem.priceDetails !== undefined && editingItem.priceDetails !== ''
+                  ? editingItem.priceDetails
+                  : (isIncluded ? t('label_incluso_na_sessao') : (item.priceDetails || '')),
+                includedInStudio: isIncluded ? true : (item.includedInStudio ?? true),
+              } as StudioEquipmentItem;
+            })()
           : item
       );
       saveEquipmentToStorage(updated);
@@ -290,13 +296,14 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
       }
     } else {
       // Create new
+      const isIncluded = (editingItem.price !== undefined ? editingItem.price : 0) === 0;
       const newItem: StudioEquipmentItem = {
         id: `eq-${Date.now()}`,
         title: editingItem.title || 'NOVO EQUIPAMENTO',
         categoryTag: editingItem.categoryTag || 'EQUIPAMENTOS',
         modelTag: editingItem.modelTag || 'PRO EQUIPMENT',
         price: editingItem.price !== undefined ? editingItem.price : 0,
-        priceDetails: editingItem.priceDetails || '',
+        priceDetails: editingItem.priceDetails || (isIncluded ? t('label_incluso_na_sessao') : ''),
         description: editingItem.description || '',
         imageUrl: finalImageUrl,
         fullSpecs: editingItem.fullSpecs || ['Equipamento de alta fidelidade para o FPStudio'],
@@ -1179,8 +1186,17 @@ export const EquipmentView: React.FC<EquipmentViewProps> = ({
                       value={editingItem.price !== undefined ? editingItem.price : 0}
                       onChange={(e) => setEditingItem({ ...editingItem, price: parseFloat(e.target.value) || 0 })}
                       placeholder={t('placeholder_zero_para_incluso')}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-3 py-2.5 text-white focus:outline-none focus:border-[#00FF41]"
+                      className={`w-full bg-zinc-900 border rounded-xl pl-9 pr-24 py-2.5 text-white focus:outline-none ${
+                        editingItem.price !== undefined && editingItem.price > 0
+                          ? 'border-zinc-800 focus:border-[#00FF41]'
+                          : 'border-[#00FF41]/60 text-[#00FF41]'
+                      }`}
                     />
+                    {editingItem.price !== undefined && editingItem.price > 0 ? null : (
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-[#00FF41]/20 text-[#00FF41] border border-[#00FF41]/50 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">
+                        {t('status_included')}
+                      </span>
+                    )}
                   </div>
                   <span className="text-[10px] text-zinc-500 mt-0.5 block">{t('text_zero_incluso_sessao')}</span>
                 </div>
