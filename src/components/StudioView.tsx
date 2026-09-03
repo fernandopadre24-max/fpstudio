@@ -11,7 +11,6 @@ import {
   FileText,
   Download,
   Users,
-  Sparkles,
   Send,
   Upload,
   PieChart,
@@ -19,7 +18,6 @@ import {
   Search,
   Clock,
   ShieldCheck,
-  Disc,
   Sliders,
   ChevronRight,
   Filter,
@@ -253,9 +251,6 @@ export const StudioView: React.FC<StudioViewProps> = ({
   });
 
   // AI Assistant State
-  const [aiPrompt, setAiPrompt] = useState<string>('');
-  const [aiResponse, setAiResponse] = useState<string>('');
-  const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
 
   const handleOpenDetailModalClient = (c: UserProfile) => {
     setDetailModalClient(c);
@@ -472,26 +467,6 @@ export const StudioView: React.FC<StudioViewProps> = ({
     onConfirmPayment(bookingId);
   };
 
-  const handleAskAiAssistant = async (contextType: string) => {
-    setIsAiLoading(true);
-    try {
-      const res = await fetch('/api/ai/assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: aiPrompt || 'Gere um texto de orçamento atraente para gravação de banda.',
-          contextType,
-        }),
-      });
-      const data = await res.json();
-      setAiResponse(data.response || 'Sem resposta do assistente.');
-    } catch {
-      setAiResponse('Erro ao conectar com a IA do Studio.');
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
   const filteredBookingsList = bookings.filter((b) => {
     if (bookingFilterStatus === 'todos') return true;
     return b.status === bookingFilterStatus;
@@ -658,19 +633,6 @@ export const StudioView: React.FC<StudioViewProps> = ({
             >
               <TrendingUp className="w-4 h-4 shrink-0" />
               <span>Finanças</span>
-            </button>
-
-            <button
-              id="admin-tab-ai-assistant"
-              onClick={() => setActiveTab('ai_assistant')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-                activeTab === 'ai_assistant'
-                  ? 'bg-sky-400 text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.45)] scale-[1.02]'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-slate-800'
-              }`}
-            >
-              <Sparkles className="w-4 h-4 shrink-0 text-amber-300" />
-              <span>Assistente</span>
             </button>
 
             <button
@@ -2114,70 +2076,6 @@ export const StudioView: React.FC<StudioViewProps> = ({
             ) : (
               <div className="text-center py-12 text-slate-500">Carregando relatório do cliente...</div>
             )}
-
-          </div>
-        )}
-
-        {/* ================= TAB 5: ASSISTENTE IA DO STUDIO ================= */}
-        {activeTab === 'ai_assistant' && (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl space-y-6 max-w-4xl mx-auto">
-            
-            <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white">
-                  Assistente IA do Studio Musical
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Gere orçamentos inteligentes, dicas de gravação e estimativas de tempo de estúdio
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Prompt ou Projeto do Cliente:
-                </label>
-                <textarea
-                  rows={3}
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="Ex: Cliente quer gravar um álbum de rock de 8 faixas com 2 guitarras, baixo, bateria e vozes. Qual a sugestão de horas de estúdio e cronograma?"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleAskAiAssistant('quote_suggestion')}
-                  disabled={isAiLoading}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300" /> Sugerir Orçamento Completo
-                </button>
-
-                <button
-                  onClick={() => handleAskAiAssistant('arrangement_tips')}
-                  disabled={isAiLoading}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5"
-                >
-                  <Disc className="w-4 h-4 text-emerald-400" /> Dicas de Gravação e Microfonação
-                </button>
-              </div>
-
-              {aiResponse && (
-                <div className="bg-slate-950 text-slate-200 border border-indigo-500/40 rounded-2xl p-5 space-y-3 text-xs leading-relaxed font-sans shadow-2xl">
-                  <div className="flex items-center justify-between text-indigo-400 font-bold border-b border-slate-800 pb-2">
-                    <span>Resposta do Assistente do Studio:</span>
-                    <span className="text-[10px] bg-indigo-900/60 px-2 py-0.5 rounded-md">Gemini IA</span>
-                  </div>
-                  <div className="whitespace-pre-wrap">{aiResponse}</div>
-                </div>
-              )}
-            </div>
 
           </div>
         )}
