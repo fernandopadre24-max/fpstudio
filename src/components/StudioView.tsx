@@ -1756,6 +1756,36 @@ export const StudioView: React.FC<StudioViewProps> = ({
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot className="border-t-2 border-slate-200 dark:border-slate-700">
+                    <tr className="bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white">
+                      <td colSpan={5} className="py-3 px-2 text-right font-black uppercase tracking-wider">
+                        Soma das Entradas (Pago):
+                      </td>
+                      <td className="py-3 px-2 text-right font-black text-emerald-600 dark:text-emerald-400">
+                        {formatBRL(transactions.reduce((s, tx) => s + (Number(tx.amount) || 0), 0))}
+                      </td>
+                    </tr>
+                    {totalRemainingToReceive > 0 && (
+                      <tr className="bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300">
+                        <td colSpan={5} className="py-3 px-2 text-right font-black uppercase tracking-wider">
+                          Ficou a Pagar (Restante a Receber):
+                        </td>
+                        <td className="py-3 px-2 text-right font-black">
+                          {formatBRL(totalRemainingToReceive)}
+                        </td>
+                      </tr>
+                    )}
+                    <tr className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300">
+                      <td colSpan={5} className="py-3 px-2 text-right font-black uppercase tracking-wider">
+                        Total Líquido:
+                      </td>
+                      <td className="py-3 px-2 text-right font-black">
+                        {formatBRL(
+                          transactions.reduce((s, tx) => s + (Number(tx.amount) || 0), 0) + totalRemainingToReceive
+                        )}
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             </div>
@@ -2482,6 +2512,16 @@ export const StudioView: React.FC<StudioViewProps> = ({
                               }`}>
                                 {b.status === 'pago_confirmado' ? t('client_profile_status_paid_confirmed') : t('client_profile_status_waiting_pix')}
                               </span>
+                              {b.isSignalPayment && b.signalPaid && !b.remainingPaid && (
+                                <span className="block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50">
+                                  ⏳ Restante a pagar: {formatBRL(b.remainingAmount || 0)}
+                                </span>
+                              )}
+                              {b.isSignalPayment && b.signalPaid && b.remainingPaid && (
+                                <span className="block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">
+                                  ✅ 100% Pago
+                                </span>
+                              )}
                             </td>
                             <td className="py-3 px-3 text-right font-black text-white">
                               {formatBRL(b.totalAmount)}
@@ -2510,6 +2550,10 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   }
 
                   const total = clientTxs.reduce((s, tx) => s + (Number(tx.amount) || 0), 0);
+                  const clientBookingsImm = bookings.filter(b => b.clientId === detailModalClient.id || b.clientName === detailModalClient.name);
+                  const clientRemaining = clientBookingsImm
+                    .filter((b) => b.isSignalPayment && b.signalPaid && !b.remainingPaid)
+                    .reduce((s, b) => s + (Number(b.remainingAmount) || Math.round((Number(b.finalAmount) || 0) / 2)), 0);
 
                   return (
                     <>
@@ -2519,6 +2563,24 @@ export const StudioView: React.FC<StudioViewProps> = ({
                         </span>
                         <span className="text-xl font-black text-emerald-400">
                           {formatBRL(total)}
+                        </span>
+                      </div>
+                      {clientRemaining > 0 && (
+                        <div className="flex items-center justify-between bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+                          <span className="text-xs font-black uppercase tracking-wider text-amber-400">
+                            Ficou a Pagar (Restante a Receber)
+                          </span>
+                          <span className="text-xl font-black text-amber-400">
+                            {formatBRL(clientRemaining)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-3">
+                        <span className="text-xs font-black uppercase tracking-wider text-indigo-400">
+                          Total Líquido
+                        </span>
+                        <span className="text-xl font-black text-indigo-400">
+                          {formatBRL(total + clientRemaining)}
                         </span>
                       </div>
                       <div className="space-y-2">
