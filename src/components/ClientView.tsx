@@ -2160,7 +2160,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                           </p>
                         </div>
 
-                        <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 grid grid-cols-2 gap-2 text-xs">
+                         <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 grid grid-cols-2 gap-2 text-xs">
                           <div>
                             <span className="text-[10px] text-slate-400 block">Data & Horário:</span>
                             <span className="font-bold text-slate-800 dark:text-slate-200">
@@ -2173,7 +2173,31 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                               {formatBRL(b.finalAmount)}
                             </span>
                           </div>
-                        </div>
+                         </div>
+
+                         {b.isSignalPayment && (
+                          <div className={`rounded-xl p-3 text-xs border ${
+                            b.signalPaid && b.remainingPaid
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700'
+                              : b.signalPaid
+                              ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700'
+                              : 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700'
+                          }`}>
+                            <span className="font-bold block mb-1">Plano de Pagamento: Sinal 50% + Restante</span>
+                            <div className="flex justify-between">
+                              <span>Sinal (50%):</span>
+                              <span className={b.signalPaid ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500'}>
+                                {b.signalPaid ? `✅ Pago — ${formatBRL(b.signalAmount || 0)}` : `Pendente — ${formatBRL(b.signalAmount || 0)}`}
+                              </span>
+                            </div>
+                            <div className="flex justify-between mt-1">
+                              <span>Restante (50%):</span>
+                              <span className={b.remainingPaid ? 'text-emerald-600 dark:text-emerald-400 font-bold' : b.signalPaid ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-500'}>
+                                {b.remainingPaid ? `✅ Pago — ${formatBRL(b.remainingAmount || 0)}` : `Pendente — ${formatBRL(b.remainingAmount || 0)}`}
+                              </span>
+                            </div>
+                          </div>
+                         )}
 
                         {b.notes && (
                           <p className="text-xs text-slate-500 italic bg-slate-50/50 dark:bg-slate-800/30 p-2 rounded-lg border border-slate-100 dark:border-slate-800">

@@ -844,11 +844,21 @@ export const StudioView: React.FC<StudioViewProps> = ({
                           </span>
                         </div>
 
-                        <p className="text-xs font-medium text-slate-400">
+                         <p className="text-xs font-medium text-slate-400">
                           {b.serviceName}
                           {b.paymentMethod && (
                             <span className="ml-1.5 text-[10px]">
                               {b.paymentMethod === 'CREDIT_CARD' ? '💳' : '📱'}
+                            </span>
+                          )}
+                          {b.isSignalPayment && b.signalPaid && !b.remainingPaid && (
+                            <span className="ml-1.5 text-[10px] font-bold text-amber-400">
+                              ⏳ Sinal PAGO — Falta Restante
+                            </span>
+                          )}
+                          {b.isSignalPayment && b.signalPaid && b.remainingPaid && (
+                            <span className="ml-1.5 text-[10px] font-bold text-emerald-400">
+                              ✅ 100% PAGO
                             </span>
                           )}
                         </p>
@@ -1365,8 +1375,10 @@ export const StudioView: React.FC<StudioViewProps> = ({
                               }`}
                             >
                               {isConcluido && <CheckCircle2 className="w-3 h-3" />}
-                              {isConcluido
+                               {isConcluido
                                 ? 'SESSÃO CONCLUÍDA (BAIXA DADA)'
+                                : isPago && b.isSignalPayment && b.signalPaid && !b.remainingPaid
+                                ? `SINAL 50% PAGO — Restante: ${formatBRL(b.remainingAmount || 0)}`
                                 : isPago
                                 ? 'PAGAMENTO CONFIRMADO'
                                 : isComprovante
@@ -1381,7 +1393,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                             {b.serviceName}
                           </p>
 
-                          {b.paymentMethod && (
+                           {b.paymentMethod && (
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
                               b.paymentMethod === 'CREDIT_CARD'
                                 ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300'
@@ -1389,7 +1401,22 @@ export const StudioView: React.FC<StudioViewProps> = ({
                             }`}>
                               {b.paymentMethod === 'CREDIT_CARD' ? '💳 Cartão de Crédito' : '📱 Pix'}
                             </span>
-                          )}
+                           )}
+                           {b.isSignalPayment && (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              b.signalPaid && !b.remainingPaid
+                                ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-400/40'
+                                : b.signalPaid && b.remainingPaid
+                                ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-400/40'
+                                : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 border border-indigo-400/40'
+                            }`}>
+                              {b.signalPaid && !b.remainingPaid
+                                ? `⏳ Sinal 50% PAGO — Falta ${formatBRL(b.remainingAmount || 0)}`
+                                : b.signalPaid && b.remainingPaid
+                                ? '✅ 100% PAGO'
+                                : '💰 Sinal 50% + Restante'}
+                            </span>
+                           )}
 
                           <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
                             <span className="flex items-center gap-1">
@@ -1436,16 +1463,25 @@ export const StudioView: React.FC<StudioViewProps> = ({
                             </button>
                           )}
 
-                          {/* "CONFIRMAR PIX" BUTTON */}
-                          {!isPago && !isConcluido && !isCancelado && (
-                            <button
-                              onClick={() => onConfirmPayment(b.id)}
-                              className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer uppercase"
-                              title="Confirmar recebimento do PIX"
-                            >
-                              <DollarSign className="w-4 h-4" /> Confirmar PIX
-                            </button>
-                          )}
+                           {/* "CONFIRMAR PIX" BUTTON */}
+                           {!isPago && !isConcluido && !isCancelado && (
+                             <button
+                               onClick={() => onConfirmPayment(b.id)}
+                               className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer uppercase"
+                               title="Confirmar recebimento do PIX"
+                             >
+                               <DollarSign className="w-4 h-4" /> Confirmar PIX
+                             </button>
+                           )}
+                           {isPago && b.isSignalPayment && b.signalPaid && !b.remainingPaid && (
+                             <button
+                               onClick={() => onConfirmPayment(b.id)}
+                               className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer uppercase"
+                               title="Confirmar pagamento do restante (50%)"
+                             >
+                               <DollarSign className="w-4 h-4" /> Confirmar Restante
+                             </button>
+                           )}
 
                           {/* "VER CHAT / ORÇAMENTO" BUTTON */}
                           <button
@@ -2042,14 +2078,15 @@ export const StudioView: React.FC<StudioViewProps> = ({
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
-                      <thead>
+                       <thead>
                         <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-bold text-[10px]">
                           <th className="py-3 px-2">Data</th>
                           <th className="py-3 px-2">Serviço</th>
                           <th className="py-3 px-2">Pagamento</th>
                           <th className="py-3 px-2">Sala</th>
                           <th className="py-3 px-2">Duração</th>
-                      <th className="py-3 px-2">{t('financials_table_header_status')}</th>
+                          <th className="py-3 px-2">Status</th>
+                          <th className="py-3 px-2">Plano</th>
                           <th className="py-3 px-2 text-right">Valor Final</th>
                         </tr>
                       </thead>
@@ -2064,6 +2101,17 @@ export const StudioView: React.FC<StudioViewProps> = ({
                             <td className="py-3 px-2">{b.roomName}</td>
                             <td className="py-3 px-2">{b.durationHours}h ({b.startTime})</td>
                             <td className="py-3 px-2 font-bold text-emerald-500">{b.status}</td>
+                            <td className="py-3 px-2">
+                              {b.isSignalPayment ? (
+                                b.signalPaid && b.remainingPaid
+                                  ? <span className="font-bold text-emerald-500">✅ 100% PAGO</span>
+                                  : b.signalPaid
+                                  ? <span className="font-bold text-amber-500">⏳ Sinal 50% PAGO — Falta {formatBRL(b.remainingAmount || 0)}</span>
+                                  : <span className="text-slate-400">💰 Sinal 50% + Restante</span>
+                              ) : (
+                                <span className="text-slate-500">Integral (100%)</span>
+                              )}
+                            </td>
                             <td className="py-3 px-2 text-right font-black">{formatBRL(b.finalAmount)}</td>
                           </tr>
                         ))}

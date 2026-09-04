@@ -83,6 +83,11 @@ export interface BookingRequest {
   paymentPlan?: string;
   paymentMethod?: PaymentMethod;
   creditCardInfo?: CreditCardPaymentInfo;
+  isSignalPayment?: boolean;
+  signalAmount?: number;
+  signalPaid?: boolean;
+  remainingAmount?: number;
+  remainingPaid?: boolean;
   createdAt: string;
   updatedAt: string;
 }

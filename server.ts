@@ -1016,6 +1016,12 @@ async function startApp() {
       totalAmount,
       discountAmount: 0,
       finalAmount: totalAmount,
+      paymentPlan: paymentPlan || 'sinal_50',
+      isSignalPayment: paymentPlan === 'sinal_50',
+      signalAmount: paymentPlan === 'sinal_50' ? Math.round((totalAmount / 2) * 100) / 100 : undefined,
+      signalPaid: false,
+      remainingAmount: paymentPlan === 'sinal_50' ? Math.round((totalAmount / 2) * 100) / 100 : undefined,
+      remainingPaid: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -1264,8 +1270,22 @@ async function startApp() {
       return res.status(404).json({ error: 'Agendamento não encontrado' });
     }
 
+    const isSignalPayment = (booking as any).isSignalPayment || false;
+    const firstPayment = !(booking as any).signalPaid;
+    const isRemainingPayment = isSignalPayment && (booking as any).signalPaid && !(booking as any).remainingPaid;
+    const paymentAmount = firstPayment
+      ? (Number((booking as any).signalAmount) || Math.round((Number(booking.finalAmount) || 0) / 2))
+      : isRemainingPayment
+      ? (Number((booking as any).remainingAmount) || Math.round((Number(booking.finalAmount) || 0) / 2))
+      : (Number(booking.finalAmount) || Number(booking.totalAmount) || 0);
+
     booking.status = 'pago_confirmado';
     booking.updatedAt = new Date().toISOString();
+    (booking as any).isSignalPayment = isSignalPayment;
+    (booking as any).signalAmount = (booking as any).signalAmount || undefined;
+    (booking as any).signalPaid = firstPayment ? true : (booking as any).signalPaid;
+    (booking as any).remainingAmount = (booking as any).remainingAmount || undefined;
+    (booking as any).remainingPaid = isRemainingPayment ? true : (firstPayment ? false : (booking as any).remainingPaid);
 
     const quote = quotes.find((q) => q.bookingId === bookingId);
     if (quote) {
@@ -1273,14 +1293,13 @@ async function startApp() {
     }
 
     // Record Transaction for Financial Dashboard
-    const paymentAmount = Number(booking.finalAmount) || Number(booking.totalAmount) || 0;
-    const existingTxIndex = transactions.findIndex((t) => t.bookingId === booking.id);
+    const existingTxIndex = transactions.findIndex((t) => t.bookingId === booking.id && t.status === 'confirmado');
     let newTx: TransactionRecord;
 
     if (existingTxIndex >= 0) {
       transactions[existingTxIndex] = {
         ...transactions[existingTxIndex],
-        amount: paymentAmount,
+        amount: (Number(transactions[existingTxIndex].amount) || 0) + paymentAmount,
         status: 'confirmado',
         confirmedAt: new Date().toISOString(),
       };
@@ -1293,7 +1312,7 @@ async function startApp() {
         clientName: booking.bandOrArtistName || booking.clientName,
         serviceName: booking.serviceName,
         amount: paymentAmount,
-        paymentMethod: 'PIX',
+        paymentMethod: booking.paymentMethod || 'PIX',
         confirmedAt: new Date().toISOString(),
         month: new Date().toISOString().slice(0, 7),
         status: 'confirmado',
@@ -1308,7 +1327,11 @@ async function startApp() {
       senderId: 'studio-master',
       senderRole: 'studio',
       senderName: studioInfo.name,
-      message: `🎉 Pagamento PIX de R$ ${paymentAmount.toFixed(2)} CONFIRMADO com sucesso! Horário garantido na ${booking.roomName} para o dia ${booking.preferredDate} às ${booking.startTime}.`,
+      message: isSignalPayment && firstPayment
+        ? `🎉 Sinal PIX de R$ ${paymentAmount.toFixed(2)} CONFIRMADO com sucesso! Valor restante a quitar: R$ ${((booking as any).remainingAmount || 0).toFixed(2)}. Horário garantido na ${booking.roomName} para o dia ${booking.preferredDate} às ${booking.startTime}.`
+        : isRemainingPayment
+        ? `🎉 Restante PIX de R$ ${paymentAmount.toFixed(2)} CONFIRMADO! Pagamento do projeto concluído (100%). Horário garantido na ${booking.roomName} para o dia ${booking.preferredDate} às ${booking.startTime}.`
+        : `🎉 Pagamento PIX de R$ ${paymentAmount.toFixed(2)} CONFIRMADO com sucesso! Horário garantido na ${booking.roomName} para o dia ${booking.preferredDate} às ${booking.startTime}.`,
       type: 'confirmation',
       timestamp: new Date().toISOString(),
     };

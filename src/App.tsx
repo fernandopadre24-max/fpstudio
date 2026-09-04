@@ -956,6 +956,12 @@ function AppContent() {
       totalAmount: total,
       discountAmount: 0,
       finalAmount: total,
+      paymentPlan: bookingData.paymentPlan || 'sinal_50',
+      isSignalPayment: isSignal,
+      signalAmount: isSignal ? pixAmount : undefined,
+      signalPaid: false,
+      remainingAmount: isSignal ? total - pixAmount : undefined,
+      remainingPaid: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -1216,10 +1222,22 @@ function AppContent() {
     // 1. Immediate optimistic UI update
     const targetBooking = bookings.find((b) => b.id === bookingId);
     if (targetBooking) {
-      const paymentAmount = Number(targetBooking.finalAmount) || Number(targetBooking.totalAmount) || 0;
+      const isSignalPayment = targetBooking.isSignalPayment || false;
+      const firstPayment = !targetBooking.signalPaid;
+      const isRemainingPayment = isSignalPayment && targetBooking.signalPaid && !targetBooking.remainingPaid;
+      const paymentAmount = firstPayment
+        ? (Number(targetBooking.signalAmount) || Math.round((Number(targetBooking.finalAmount) || 0) / 2))
+        : isRemainingPayment
+        ? (Number(targetBooking.remainingAmount) || Math.round((Number(targetBooking.finalAmount) || 0) / 2))
+        : (Number(targetBooking.finalAmount) || Number(targetBooking.totalAmount) || 0);
       const updatedBooking: BookingRequest = {
         ...targetBooking,
         status: 'pago_confirmado',
+        isSignalPayment: targetBooking.isSignalPayment,
+        signalAmount: targetBooking.signalAmount,
+        signalPaid: firstPayment ? true : targetBooking.signalPaid,
+        remainingAmount: targetBooking.remainingAmount,
+        remainingPaid: isRemainingPayment ? true : (firstPayment ? false : targetBooking.remainingPaid),
         updatedAt: new Date().toISOString(),
       };
 
@@ -1230,7 +1248,7 @@ function AppContent() {
         clientName: targetBooking.bandOrArtistName || targetBooking.clientName,
         serviceName: targetBooking.serviceName,
         amount: paymentAmount,
-        paymentMethod: 'PIX',
+        paymentMethod: targetBooking.paymentMethod || 'PIX',
         confirmedAt: new Date().toISOString(),
         month: new Date().toISOString().slice(0, 7),
         status: 'confirmado',
