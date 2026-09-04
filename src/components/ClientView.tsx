@@ -1472,9 +1472,12 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     }}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    🗓️ Funcionamento: de <strong>Terça a Sexta</strong>. (Segunda, Sábado e Domingo fechado)
-                  </p>
+                  <div className="mt-2 flex items-start gap-2 bg-red-100 dark:bg-red-950/60 border border-red-400 dark:border-red-700 rounded-lg px-3 py-2 animate-pulse">
+                    <span className="text-red-600 dark:text-red-400 font-black">⚠️</span>
+                    <p className="text-[11px] font-bold text-red-700 dark:text-red-300 leading-tight">
+                      Funcionamento: apenas de <strong>TERÇA a SEXTA</strong>. Segunda, Sábado e Domingo o estúdio está fechado.
+                    </p>
+                  </div>
                 </div>
 
                 {/* 3. Time Slots Grid */}
@@ -2012,8 +2015,8 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
 
                 {/* 9. Submit Button */}
                 {bookingFormError && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-[11px] font-bold flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <div className="p-3 bg-red-600 border-2 border-red-300 rounded-xl text-white text-[11px] font-black flex items-start gap-2 animate-pulse shadow-lg">
+                    <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
                     <span>{bookingFormError}</span>
                   </div>
                 )}
