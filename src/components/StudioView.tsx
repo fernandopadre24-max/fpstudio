@@ -2517,6 +2517,14 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                   ⏳ Restante a pagar: {formatBRL(b.remainingAmount || 0)}
                                 </span>
                               )}
+                              {b.isSignalPayment && b.signalPaid && !b.remainingPaid && (
+                                <button
+                                  onClick={() => onConfirmPayment(b.id)}
+                                  className="mt-1.5 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] rounded-lg transition flex items-center gap-1 cursor-pointer"
+                                >
+                                  <DollarSign className="w-3 h-3" /> Confirmar Restante
+                                </button>
+                              )}
                               {b.isSignalPayment && b.signalPaid && b.remainingPaid && (
                                 <span className="block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50">
                                   ✅ 100% Pago
