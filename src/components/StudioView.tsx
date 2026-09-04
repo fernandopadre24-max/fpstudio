@@ -716,11 +716,16 @@ export const StudioView: React.FC<StudioViewProps> = ({
             </div>
             <div>
               <p className="text-xl md:text-2xl font-black text-white tracking-tight">
-                {formatBRL(totalBookingsSum)}
+                {formatBRL(totalConfirmedRevenue)}
               </p>
               <p className="text-[11px] text-slate-400 font-semibold mt-1">
-                Total acumulado de {bookings.length} {bookings.length === 1 ? 'solicitação' : 'solicitações'}
+                Valor realmente pago ({confirmedBookingsList.length} {confirmedBookingsList.length === 1 ? 'sessão paga' : 'sessões pagas'})
               </p>
+              {totalRemainingToReceive > 0 && (
+                <p className="text-[11px] font-black text-orange-400 mt-1">
+                  Restante a Receber: {formatBRL(totalRemainingToReceive)}
+                </p>
+              )}
             </div>
           </div>
 
