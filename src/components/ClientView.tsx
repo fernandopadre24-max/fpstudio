@@ -575,6 +575,11 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
       setBookingFormError('Por favor, selecione a data do agendamento.');
       return;
     }
+    const selectedDay = new Date(selectedDate + 'T12:00:00').getDay();
+    if (selectedDay < 2 || selectedDay > 5) {
+      setBookingFormError('O estúdio funciona apenas de TERÇA a SEXTA. Selecione outro dia.');
+      return;
+    }
     if (!selectedTime) {
       setBookingFormError('Por favor, selecione o horário do agendamento.');
       return;
@@ -1452,9 +1457,24 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     required
                     min={new Date().toISOString().slice(0, 10)}
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedDate(val);
+                      if (val) {
+                        const day = new Date(val + 'T12:00:00').getDay();
+                        if (day < 2 || day > 5) {
+                          setBookingFormError('O estúdio funciona apenas de TERÇA a SEXTA. Selecione outro dia.');
+                          setSelectedDate('');
+                        } else {
+                          setBookingFormError('');
+                        }
+                      }
+                    }}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    🗓️ Funcionamento: de <strong>Terça a Sexta</strong>. (Segunda, Sábado e Domingo fechado)
+                  </p>
                 </div>
 
                 {/* 3. Time Slots Grid */}

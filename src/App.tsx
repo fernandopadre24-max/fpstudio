@@ -926,6 +926,14 @@ function AppContent() {
 
   // Action Handlers
   const handleRequestBooking = async (bookingData: any) => {
+    // Regra de funcionamento: estúdio opera apenas de TERÇA (2) a SEXTA (5)
+    const bDate = bookingData.preferredDate;
+    if (bDate) {
+      const bDay = new Date(bDate + 'T12:00:00').getDay();
+      if (bDay < 2 || bDay > 5) {
+        return { error: 'O estúdio funciona apenas de TERÇA a SEXTA.' };
+      }
+    }
     const total = Number(bookingData.totalAmount) || 300;
     const isSignal = bookingData.paymentPlan === 'sinal_50';
     const pixAmount = isSignal ? Math.round((total / 2) * 100) / 100 : total;

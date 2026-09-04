@@ -979,6 +979,14 @@ async function startApp() {
       paymentPlan,
     } = req.body;
 
+    // Regra de funcionamento: estúdio opera apenas de TERÇA (2) a SEXTA (5)
+    if (preferredDate) {
+      const bday = new Date(preferredDate + 'T12:00:00').getDay();
+      if (bday < 2 || bday > 5) {
+        return res.status(400).json({ error: 'O estúdio funciona apenas de TERÇA a SEXTA.' });
+      }
+    }
+
     const service = services.find((s) => s.id === serviceId);
     const room = rooms.find((r) => r.id === roomId) || rooms[0];
 
