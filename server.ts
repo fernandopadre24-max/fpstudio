@@ -232,13 +232,25 @@ function computeFinancials(): FinancialSummary {
   );
   const untrackedBookingsSum = confirmedBookings
     .filter((b) => !txBookingIds.has(b.id))
-    .reduce((sum, b) => sum + (Number(b.finalAmount) || Number(b.totalAmount) || 0), 0);
+    .reduce((sum, b) => {
+      // Se apenas o sinal (50%) foi pago, conta somente o valor recebido do sinal
+      const isSignalOnly = (b as any).isSignalPayment && (b as any).signalPaid && !(b as any).remainingPaid;
+      const received = isSignalOnly
+        ? (Number((b as any).signalAmount) || Math.round((Number(b.finalAmount) || 0) / 2))
+        : (Number(b.finalAmount) || Number(b.totalAmount) || 0);
+      return sum + received;
+    }, 0);
 
   const totalRevenue = txSum + untrackedBookingsSum;
 
+  // Restante ainda a receber de sinais já pagos (50% pago, falta o restante)
+  const remainingFromSignals = bookings
+    .filter((b) => (b as any).isSignalPayment && (b as any).signalPaid && !(b as any).remainingPaid)
+    .reduce((sum, b) => sum + (Number((b as any).remainingAmount) || Math.round((Number(b.finalAmount) || 0) / 2)), 0);
+
   const pendingRevenue = bookings
     .filter((b) => b.status === 'pendente_orcamento' || b.status === 'orcamento_enviado' || b.status === 'comprovante_enviado')
-    .reduce((sum, b) => sum + (Number(b.finalAmount) || Number(b.totalAmount) || 0), 0);
+    .reduce((sum, b) => sum + (Number(b.finalAmount) || Number(b.totalAmount) || 0), 0) + remainingFromSignals;
 
   const confirmedCount = Math.max(confirmedTx.length, confirmedBookings.length);
   const pendingCount = bookings.filter((b) => b.status === 'pendente_orcamento' || b.status === 'orcamento_enviado' || b.status === 'comprovante_enviado').length;
@@ -282,7 +294,11 @@ function computeFinancials(): FinancialSummary {
       if (!monthMap[mCode]) {
         monthMap[mCode] = { revenue: 0, count: 0 };
       }
-      monthMap[mCode].revenue += (Number(b.finalAmount) || Number(b.totalAmount) || 0);
+      const isSignalOnly = (b as any).isSignalPayment && (b as any).signalPaid && !(b as any).remainingPaid;
+      const received = isSignalOnly
+        ? (Number((b as any).signalAmount) || Math.round((Number(b.finalAmount) || 0) / 2))
+        : (Number(b.finalAmount) || Number(b.totalAmount) || 0);
+      monthMap[mCode].revenue += received;
       monthMap[mCode].count += 1;
     });
 
@@ -1604,9 +1620,13 @@ async function startApp() {
       .filter((b) => b.status === 'pago_confirmado' || b.status === 'concluido' || b.status === 'agendado')
       .reduce((a, b) => a + b.durationHours, 0);
 
-    const pendingAmount = clientBookings
-      .filter((b) => b.status === 'pendente_orcamento' || b.status === 'orcamento_enviado' || b.status === 'comprovante_enviado')
-      .reduce((a, b) => a + b.finalAmount, 0);
+    const pendingAmount =
+      clientBookings
+        .filter((b) => b.status === 'pendente_orcamento' || b.status === 'orcamento_enviado' || b.status === 'comprovante_enviado')
+        .reduce((a, b) => a + b.finalAmount, 0) +
+      clientBookings
+        .filter((b) => (b as any).isSignalPayment && (b as any).signalPaid && !(b as any).remainingPaid)
+        .reduce((a, b) => a + (Number((b as any).remainingAmount) || Math.round((Number(b.finalAmount) || 0) / 2)), 0);
 
     // Favorite Service & Room
     const serviceCounts: Record<string, number> = {};

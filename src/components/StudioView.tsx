@@ -476,10 +476,13 @@ export const StudioView: React.FC<StudioViewProps> = ({
   const confirmedBookingsList = bookings.filter(
     (b) => b.status === 'pago_confirmado' || b.status === 'concluido' || b.status === 'agendado'
   );
-  const totalConfirmedFromBookings = confirmedBookingsList.reduce(
-    (acc, b) => acc + (Number(b.finalAmount) || Number(b.totalAmount) || 0),
-    0
-  );
+  const totalConfirmedFromBookings = confirmedBookingsList.reduce((acc, b) => {
+    const isSignalOnly = b.isSignalPayment && b.signalPaid && !b.remainingPaid;
+    const received = isSignalOnly
+      ? (Number(b.signalAmount) || Math.round((Number(b.finalAmount) || 0) / 2))
+      : (Number(b.finalAmount) || Number(b.totalAmount) || 0);
+    return acc + received;
+  }, 0);
   const totalConfirmedFromTx = (transactions || [])
     .filter((t) => t.status === 'confirmado')
     .reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
@@ -493,10 +496,17 @@ export const StudioView: React.FC<StudioViewProps> = ({
   const pendingBookingsList = bookings.filter(
     (b) => b.status === 'orcamento_enviado' || b.status === 'comprovante_enviado' || b.status === 'pendente_orcamento'
   );
-  const totalPendingRevenue = pendingBookingsList.reduce(
+  const pendingBookingsSum = pendingBookingsList.reduce(
     (acc, b) => acc + (Number(b.finalAmount) || Number(b.totalAmount) || 0),
     0
-  ) || Number(financials?.pendingRevenue) || 0;
+  );
+
+  // Valor total ainda a receber de sinais já pagos (50% pago, falta o restante)
+  const totalRemainingToReceive = bookings
+    .filter((b) => b.isSignalPayment && b.signalPaid && !b.remainingPaid)
+    .reduce((acc, b) => acc + (Number(b.remainingAmount) || Math.round((Number(b.finalAmount) || 0) / 2)), 0);
+
+  const totalPendingRevenue = (pendingBookingsSum || 0) + totalRemainingToReceive;
 
   const totalBookingsSum = bookings
     .filter((b) => b.status !== 'cancelado')
@@ -751,6 +761,11 @@ export const StudioView: React.FC<StudioViewProps> = ({
               <p className="text-[11px] text-slate-400 font-semibold mt-1">
                 {pendingBookingsList.length} {pendingBookingsList.length === 1 ? 'orçamento em análise' : 'orçamentos em análise'}
               </p>
+              {totalRemainingToReceive > 0 && (
+                <p className="text-[11px] font-black text-orange-400 mt-1">
+                  Restante a Receber (sinais 50% pagos): {formatBRL(totalRemainingToReceive)}
+                </p>
+              )}
             </div>
           </div>
 
@@ -1605,6 +1620,11 @@ export const StudioView: React.FC<StudioViewProps> = ({
                   {formatBRL(totalPendingRevenue)}
                 </h3>
                 <p className="text-[10px] text-slate-500">{pendingBookingsList.length || financials.pendingCount} agendamentos aguardando PIX</p>
+                {totalRemainingToReceive > 0 && (
+                  <p className="text-[11px] font-black text-orange-500 mt-1">
+                    Restante a Receber (sinais 50% pagos): {formatBRL(totalRemainingToReceive)}
+                  </p>
+                )}
               </div>
 
               <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-lg space-y-2">
