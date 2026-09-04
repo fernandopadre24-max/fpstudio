@@ -151,6 +151,12 @@ export const ClientView: React.FC<ClientViewProps> = ({
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [instrumentCategoryFilter, setInstrumentCategoryFilter] = useState<string>('todos');
   const [instrumentSearch, setInstrumentSearch] = useState<string>('');
+  const instrumentSliderRef = React.useRef<HTMLDivElement>(null);
+  const scrollInstruments = (dir: number) => {
+    if (instrumentSliderRef.current) {
+      instrumentSliderRef.current.scrollBy({ left: dir * 240, behavior: 'smooth' });
+    }
+  };
   const [tracksCount, setTracksCount] = useState<number>(1);
   // Reference MP3 tracks (guia da música) - max = tracksCount chosen in form
   const [referenceTracks, setReferenceTracks] = useState<{ name: string; dataUrl: string }[]>([]);
@@ -1727,7 +1733,7 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     })}
                   </div>
 
-                  {/* Instruments Grid List */}
+                  {/* Instruments Horizontal Slider */}
                   {(() => {
                     const validOptions = materials.filter((o) => Boolean(o.categoryGroup) && o.price > 0);
                     const filteredOptions = validOptions.filter((o) => {
@@ -1740,73 +1746,98 @@ if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|aac|ogg|
                     });
 
                     return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[380px] overflow-y-auto pr-1">
-                        {filteredOptions.map((opt) => {
-                          const isSelected = selectedOptions.includes(opt.id);
-                          const isIncluded = opt.price === 0;
-
-                          return (
+                      <div className="relative">
+                        {filteredOptions.length > 0 && (
+                          <>
                             <button
-                              key={opt.id}
                               type="button"
-                              onClick={() => toggleOption(opt.id)}
-                              className={`p-3 rounded-xl text-left border transition flex items-start justify-between gap-3 cursor-pointer group ${
-                                isSelected
-                                  ? isIncluded
-                                    ? 'bg-emerald-500/15 border-emerald-500 text-slate-900 dark:text-white shadow-[0_0_12px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/40'
-                                    : 'bg-[#00FF41]/10 border-[#00FF41] text-slate-900 dark:text-white shadow-[0_0_12px_rgba(0,255,65,0.15)] ring-1 ring-[#00FF41]/40'
-                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
-                              }`}
+                              onClick={() => scrollInstruments(-1)}
+                              aria-label="Rolar para a esquerda"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-9 rounded-r-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center cursor-pointer transition"
                             >
-                              <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                                <div className={`w-4 h-4 rounded-md mt-0.5 flex items-center justify-center border shrink-0 transition ${
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => scrollInstruments(1)}
+                              aria-label="Rolar para a direita"
+                              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-9 rounded-l-lg bg-black/50 hover:bg-black/70 text-white flex items-center justify-center cursor-pointer transition"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                        <div
+                          ref={instrumentSliderRef}
+                          className="flex gap-2.5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 pt-0.5 px-1 no-scrollbar"
+                        >
+                          {filteredOptions.map((opt) => {
+                            const isSelected = selectedOptions.includes(opt.id);
+                            const isIncluded = opt.price === 0;
+
+                            return (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => toggleOption(opt.id)}
+                                className={`snap-start shrink-0 w-[210px] p-3 rounded-xl text-left border transition flex flex-col items-start justify-between gap-2.5 cursor-pointer group ${
                                   isSelected
                                     ? isIncluded
-                                      ? 'bg-emerald-500 border-emerald-500 text-slate-950'
-                                      : 'bg-[#00FF41] border-[#00FF41] text-slate-950'
-                                    : 'border-slate-400 dark:border-slate-600 group-hover:border-slate-300'
-                                }`}>
-                                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className={`text-xs font-black leading-tight ${
-                                      isSelected
-                                        ? isIncluded ? 'text-emerald-400' : 'text-[#00FF41]'
-                                        : 'text-slate-800 dark:text-white'
-                                    }`}>
-                                      {opt.label}
-                                    </span>
-                                    {opt.categoryGroup && (
-                                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium">
-                                        {opt.categoryGroup}
-                                      </span>
-                                    )}
+                                      ? 'bg-emerald-500/15 border-emerald-500 text-slate-900 dark:text-white shadow-[0_0_12px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/40'
+                                      : 'bg-[#00FF41]/10 border-[#00FF41] text-slate-900 dark:text-white shadow-[0_0_12px_rgba(0,255,65,0.15)] ring-1 ring-[#00FF41]/40'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
+                                }`}
+                              >
+                                <div className="flex items-start gap-2.5 min-w-0 flex-1 w-full">
+                                  <div className={`w-4 h-4 rounded-md mt-0.5 flex items-center justify-center border shrink-0 transition ${
+                                    isSelected
+                                      ? isIncluded
+                                        ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                                        : 'bg-[#00FF41] border-[#00FF41] text-slate-950'
+                                      : 'border-slate-400 dark:border-slate-600 group-hover:border-slate-300'
+                                  }`}>
+                                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                                   </div>
 
-                                  {opt.sublabel && (
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug line-clamp-2">
-                                      {opt.sublabel}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className={`text-xs font-black leading-tight ${
+                                        isSelected
+                                          ? isIncluded ? 'text-emerald-400' : 'text-[#00FF41]'
+                                          : 'text-slate-800 dark:text-white'
+                                      }`}>
+                                        {opt.label}
+                                      </span>
+                                      {opt.categoryGroup && (
+                                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium">
+                                          {opt.categoryGroup}
+                                        </span>
+                                      )}
+                                    </div>
 
-                              <div className="shrink-0 text-right">
-                                <span className={`px-2 py-0.5 rounded-lg text-xs font-mono font-black ${
-                                  isIncluded
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase'
-                                    : isSelected
-                                    ? 'bg-[#00FF41] text-slate-950'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                                }`}>
-                                  {isIncluded ? 'Incluso' : `+${formatBRL(opt.price)}`}
-                                </span>
-                              </div>
-                            </button>
-                          );
-                        })}
+                                    {opt.sublabel && (
+                                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug line-clamp-2">
+                                        {opt.sublabel}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="shrink-0 w-full">
+                                  <span className={`px-2 py-0.5 rounded-lg text-xs font-mono font-black ${
+                                    isIncluded
+                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase'
+                                      : isSelected
+                                      ? 'bg-[#00FF41] text-slate-950'
+                                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                                  }`}>
+                                    {isIncluded ? 'Incluso' : `+${formatBRL(opt.price)}`}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })()}
