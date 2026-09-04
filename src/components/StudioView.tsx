@@ -1378,7 +1378,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                {isConcluido
                                 ? 'SESSÃO CONCLUÍDA (BAIXA DADA)'
                                 : isPago && b.isSignalPayment && b.signalPaid && !b.remainingPaid
-                                ? `SINAL 50% PAGO — Restante: ${formatBRL(b.remainingAmount || 0)}`
+                                ? `SINAL 50% PAGO — Restando pagar: ${formatBRL(b.remainingAmount || 0)}`
                                 : isPago
                                 ? 'PAGAMENTO CONFIRMADO'
                                 : isComprovante
@@ -1411,7 +1411,7 @@ export const StudioView: React.FC<StudioViewProps> = ({
                                 : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 border border-indigo-400/40'
                             }`}>
                               {b.signalPaid && !b.remainingPaid
-                                ? `⏳ Sinal 50% PAGO — Falta ${formatBRL(b.remainingAmount || 0)}`
+                                ? `⏳ Sinal 50% PAGO — Restando pagar: ${formatBRL(b.remainingAmount || 0)}`
                                 : b.signalPaid && b.remainingPaid
                                 ? '✅ 100% PAGO'
                                 : '💰 Sinal 50% + Restante'}
